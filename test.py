@@ -3,6 +3,7 @@ import urllib.parse
 import sys
 import re
 import logging
+from nicegui import ui, app
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -70,16 +71,7 @@ async def outgoing_worker(out_queue, writer):
 
         out_queue.task_done()
 
-
-async def main(host, port):
-    reader, writer = await asyncio.open_connection(host, port)
-
-    logger.debug(f'Connected to {host}:{port}')
-
-    queue = asyncio.Queue()
-
-    asyncio.create_task(outgoing_worker(queue, writer))
-
+async def incoming_worker(out_queue, reader):
     while True:
         line = await reader.readline()
         if not line:
@@ -93,10 +85,24 @@ async def main(host, port):
             command, message = match.groups()
             logger.debug(f'CMD: {command}, MSG: {message}')
 
-            command = incoming_commands.get(command, incoming_info)(message, queue)
+            command = incoming_commands.get(command, incoming_info)(message, out_queue)
 
-    # Ignore the body, close the socket
-    writer.close()
-    await writer.wait_closed()
+async def openvpn_connection():
+    host = 'localhost'
+    port = 8888
 
-asyncio.run(main('localhost', 8888))
+    reader, writer = await asyncio.open_connection(host, port)
+
+    logger.debug(f'Connected to {host}:{port}')
+
+    queue = asyncio.Queue()
+
+    asyncio.create_task(outgoing_worker(queue, writer))
+    asyncio.create_task(incoming_worker(queue, reader))
+
+
+ui.label('Hello NiceGUI!')
+ui.button('BUTTON', on_click=lambda: ui.notify('button was pressed'))
+
+app.on_connect(openvpn_connection)
+ui.run()
