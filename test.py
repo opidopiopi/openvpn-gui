@@ -1,108 +1,44 @@
 import asyncio
-import urllib.parse
 import sys
 import re
 import logging
 from nicegui import ui, app
+from management import OpenVPNConnection
 
 logging.basicConfig(level=logging.DEBUG)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-command_pattern = r'^>([^:]+):(.*)$'
-
-
-
-def incoming_info(message: str, task_queue):
-    logger.info(message)
-
-
-def need_string(message: str, task_queue):
-    if 'pkcs11-id-request' in message:
-        task_queue.put_nowait(Command('pkcs11-id-count', ''))
-
-
-def set_pkcs11id_count(message: str, task_queue):
-    if not message.isdigit():
-        logger.error(f'Invalid pkcs11id count: {message}')
-        return
-    
-    for id in range(int(message)):
-        logger.debug(f'Getting pkcs11-id #{id}')
-        task_queue.put_nowait(Command('pkcs11-id-get', str(id)))
-
-
-def set_pkcs11id_entry(message: str, task_queue):
-    message_pattern = r"'(?P<index>\d)', ID:'(?P<id>[^']+)', BLOB:'(?P<blob>[^']+)'"
-
-    match = re.match(message_pattern, message)
-
-    logger.debug(f'Set pkcs11id {match.group('index')}: {match.group('id')}')
-
-
-incoming_commands = {
-        'INFO': incoming_info,
-        'NEED-STR': need_string,
-        'PKCS11ID-COUNT': set_pkcs11id_count,
-        'PKCS11ID-ENTRY': set_pkcs11id_entry,
-        }
-
-
-class Command:
-    command = ''
-    payload = ''
-
-    def __init__(self, command, payload):
-        self.command = command
-        self.payload = payload
-
-
-async def outgoing_worker(out_queue, writer):
-    logger.debug('Starting outgoing worker')
-    while True:
-        command = await out_queue.get()
-
-        logger.debug(f'Sending: {command.command} {command.payload}')
-
-        writer.write(f'{command.command} {command.payload}'.rstrip().encode('utf-8'))
-        writer.write('\n'.encode('utf-8'))
-        await writer.drain()
-
-        out_queue.task_done()
-
-async def incoming_worker(out_queue, reader):
-    while True:
-        line = await reader.readline()
-        if not line:
-            break
-
-        line = line.decode('utf-8').rstrip()
-        logger.debug(f'{line}')
-
-        match = re.match(command_pattern, line)
-        if line and match:
-            command, message = match.groups()
-            logger.debug(f'CMD: {command}, MSG: {message}')
-
-            command = incoming_commands.get(command, incoming_info)(message, out_queue)
-
-async def openvpn_connection():
-    host = 'localhost'
-    port = 8888
-
-    reader, writer = await asyncio.open_connection(host, port)
-
-    logger.debug(f'Connected to {host}:{port}')
-
-    queue = asyncio.Queue()
-
-    asyncio.create_task(outgoing_worker(queue, writer))
-    asyncio.create_task(incoming_worker(queue, reader))
-
-
-ui.label('Hello NiceGUI!')
+ui.label('Hello there!')
 ui.button('BUTTON', on_click=lambda: ui.notify('button was pressed'))
 
-app.on_connect(openvpn_connection)
+
+loglevel = ui.slider(min=0, max=11, value=3).props('label')
+
+
+async def open_connection():
+    host, port = ('127.0.0.1', 8888)
+    connection = OpenVPNConnection(host, port)
+    app.storage.client['vpn_connection'] = connection
+
+    while True:
+        try:
+            await connection.connect()
+        except:
+            with ui.dialog() as dialog, ui.card():
+                ui.label(f'Failed to connect to {host}:{port}')
+                ui.label('Reconnect?')
+                with ui.row():
+                  ui.button('Yes', color='green', on_click=lambda: dialog.submit(True))
+                  ui.button('No', color='red', on_click=lambda: dialog.submit(False))
+
+            retry = await dialog
+            if not retry:
+                break
+
+
+async def close_connection():
+    if app.storage.client['vpn_connection']:
+        await app.storage.client['vpn_connection'].close()
+
+app.on_connect(open_connection)
+app.on_disconnect(close_connection)
 ui.run()
