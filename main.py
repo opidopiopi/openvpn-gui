@@ -1,6 +1,3 @@
-import asyncio
-import sys
-import re
 import logging
 from nicegui import ui, app
 from management import OpenVPNConnection
