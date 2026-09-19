@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import re
+import datetime
 
 import commands
 
@@ -108,11 +109,14 @@ class OpenVPNConnection:
             await self.send_command(commands.pkcs11_id_count())
 
     async def _log(self, message: str):
-        message_pattern = r"\d+,(?P<flag>[IFNWD]+),(?P<message>.*)"
+        message_pattern = r"(?P<timestamp>\d+),(?P<flag>[IFNWD]+),(?P<message>.*)"
 
         match = re.match(message_pattern, message)
         if match is not None:
-            self.callback_log(match.group('flag'), match.group('message'))
+            timestamp = datetime.datetime.fromtimestamp(
+                int(match.group('timestamp'))).strftime('%H:%M:%S')
+            message = f'{timestamp}: {match.group('message')}'
+            self.callback_log(match.group('flag'), message)
 
     async def _set_pkcs11id_count(self, message: str):
         if not message.isdigit():
