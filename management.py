@@ -21,24 +21,26 @@ class OpenVPNConnection:
         self.port: int = port
         self.task_queue = asyncio.Queue()
         self.incoming_commands = {
-            'INFO': self.incoming_info,
-            'NEED-STR': self.need_string,
-            'PKCS11ID-COUNT': self.set_pkcs11id_count,
-            'PKCS11ID-ENTRY': self.set_pkcs11id_entry,
+            'INFO': self._incoming_info,
+            'NEED-STR': self._need_string,
+            'PKCS11ID-COUNT': self._set_pkcs11id_count,
+            'PKCS11ID-ENTRY': self._set_pkcs11id_entry,
+            'LOG': self._log,
         }
         self.state: State = State()
+        self.log_listeners = [lambda level, message: logger.debug(message)]
 
     async def connect(self):
         logger.debug(f'Connecting to {self.host}:{self.port}')
         reader, writer = await asyncio.open_connection(self.host, self.port)
         logger.debug('Connected!')
 
-        self.outgoing_task = asyncio.create_task(self.outgoing_worker(writer))
-        self.incoming_task = asyncio.create_task(self.incoming_worker(reader))
+        self.outgoing_task = asyncio.create_task(self._outgoing_worker(writer))
+        self.incoming_task = asyncio.create_task(self._incoming_worker(reader))
 
-        self.task_queue.put_nowait(commands.log_on())
         self.task_queue.put_nowait(commands.bytecount_on(1))
-        self.task_queue.put_nowait(commands.status_on())
+        self.task_queue.put_nowait(commands.state_on())
+        self.task_queue.put_nowait(commands.log_on())
 
     async def close(self):
         self.task_queue.put_nowait(commands.exit())
@@ -46,16 +48,36 @@ class OpenVPNConnection:
         await self.incoming_task
 
     def connected(self):
-        return not self.outgoing_task.done() and not self.incoming_task.done()
+        if self.outgoing_task:
+            return not self.outgoing_task.done() and not self.incoming_task.done()
+        return False
 
-    def incoming_info(self, message: str):
+    def add_log_listener(self, listener):
+        self.log_listeners.append(listener)
+
+    def remove_log_listener(self, listener):
+        self.log_listeners.remove(listener)
+
+    def loglevel(self, level: int):
+        logger.debug(f'Set verbosity to {level}')
+        self.task_queue.put_nowait(commands.verbosity(level))
+
+    def _incoming_info(self, message: str):
         logger.info(message)
 
-    def need_string(self, message: str):
+    def _need_string(self, message: str):
         if 'pkcs11-id-request' in message:
             self.task_queue.put_nowait(commands.pkcs11_id_count())
 
-    def set_pkcs11id_count(self, message: str):
+    def _log(self, message: str):
+        message_pattern = r"\d+,(?P<flag>[IFNWD]+),(?P<message>.*)"
+
+        match = re.match(message_pattern, message)
+        if match is not None:
+            for listener in self.log_listeners:
+                listener(match.group('flag'), match.group('message'))
+
+    def _set_pkcs11id_count(self, message: str):
         if not message.isdigit():
             logger.error(f'Invalid pkcs11id count: {message}')
             return
@@ -64,7 +86,7 @@ class OpenVPNConnection:
             logger.debug(f'Getting pkcs11-id #{id}')
             self.task_queue.put_nowait(commands.pkcs11_id_get(id))
 
-    def set_pkcs11id_entry(self, message: str):
+    def _set_pkcs11id_entry(self, message: str):
         message_pattern = r"'(?P<index>\d)', ID:'(?P<id>[^']+)', BLOB:'(?P<blob>[^']+)'"
 
         match = re.match(message_pattern, message)
@@ -73,7 +95,7 @@ class OpenVPNConnection:
             logger.debug(
                 f'Set pkcs11id {match.group('index')}: {match.group('id')}')
 
-    async def outgoing_worker(self, writer: asyncio.StreamWriter):
+    async def _outgoing_worker(self, writer: asyncio.StreamWriter):
         logger.debug('Starting outgoing worker')
         while True:
             command: commands.Command = await self.task_queue.get()
@@ -93,7 +115,7 @@ class OpenVPNConnection:
         writer.close()
         logger.debug('Stopping outgoing worker')
 
-    async def incoming_worker(self, reader: asyncio.StreamReader):
+    async def _incoming_worker(self, reader: asyncio.StreamReader):
         logger.debug('Starting incoming worker')
         while True:
             line = await reader.readline()
@@ -109,6 +131,6 @@ class OpenVPNConnection:
                 logger.debug(f'CMD: {command}, MSG: {message}')
 
                 command = self.incoming_commands.get(
-                    command, self.incoming_info)(message)
+                    command, self._incoming_info)(message)
 
         logger.debug('Stopping incoming worker')
