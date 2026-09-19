@@ -58,7 +58,7 @@ def page():
             _ = loglevel.on('update:model-value',
                             lambda e: connection.loglevel(e.args), throttle=1.0)
 
-        log = ui.log()  # .classes('w-full h-100')
+        log = ui.log()
 
     def logger(level, message): return show_log(level, message, log)
     connection.set_log_callback(logger)
