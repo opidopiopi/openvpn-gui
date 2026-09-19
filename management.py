@@ -3,6 +3,7 @@ import sys
 import re
 import logging
 
+import commands
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -10,13 +11,9 @@ logger.setLevel(logging.DEBUG)
 command_pattern = r'^>([^:]+):(.*)$'
 
 
-class Command:
-    command = ''
-    payload = ''
-
-    def __init__(self, command, payload):
-        self.command = command
-        self.payload = payload
+class State:
+    def __init__(self):
+        self.status = 'INIT'
 
 
 class OpenVPNConnection:
@@ -30,6 +27,9 @@ class OpenVPNConnection:
             'PKCS11ID-COUNT': self.set_pkcs11id_count,
             'PKCS11ID-ENTRY': self.set_pkcs11id_entry,
         }
+        self.outgoing_task = None
+        self.incoming_task = None
+        self.state = State()
 
 
     async def connect(self):
@@ -37,12 +37,23 @@ class OpenVPNConnection:
         reader, writer = await asyncio.open_connection(self.host, self.port)
         logger.debug(f'Connected!')
 
-        asyncio.create_task(self.outgoing_worker(writer)),
-        asyncio.create_task(self.incoming_worker(reader))
+        self.outgoing_task = asyncio.create_task(self.outgoing_worker(writer))
+        self.incoming_task = asyncio.create_task(self.incoming_worker(reader))
+
+        self.task_queue.put_nowait(commands.log_on())
+        self.task_queue.put_nowait(commands.bytecount_on(1))
+        self.task_queue.put_nowait(commands.status_on())
         
 
     async def close(self):
-        self.task_queue.put_nowait(Command('exit', ''))
+        self.task_queue.put_nowait(commands.exit())
+        await self.outgoing_task
+        await self.incoming_task
+
+
+    def connected(self):
+        return self.outgoing_task is not None and self.incoming_task is not None and not self.outgoing_task.done() and not self.incoming_task.done()
+
 
     def incoming_info(self, message: str):
         logger.info(message)
@@ -50,7 +61,7 @@ class OpenVPNConnection:
 
     def need_string(self, message: str):
         if 'pkcs11-id-request' in message:
-            self.task_queue.put_nowait(Command('pkcs11-id-count', ''))
+            self.task_queue.put_nowait(commands.pkcs11_id_count())
 
 
     def set_pkcs11id_count(self, message: str):
@@ -60,7 +71,7 @@ class OpenVPNConnection:
         
         for id in range(int(message)):
             logger.debug(f'Getting pkcs11-id #{id}')
-            self.task_queue.put_nowait(Command('pkcs11-id-get', str(id)))
+            self.task_queue.put_nowait(commands.pkcs11_id_get(id))
 
 
     def set_pkcs11id_entry(self, message: str):
@@ -89,6 +100,7 @@ class OpenVPNConnection:
 
         writer.close()
         logger.debug('Stopping outgoing worker')
+
 
     async def incoming_worker(self, reader):
         logger.debug('Starting incoming worker')
