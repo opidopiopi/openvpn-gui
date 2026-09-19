@@ -71,7 +71,7 @@ def page():
             _ = ui.button('ok', on_click=lambda: dialog.submit(selector.value))
 
     async def show_pkcs11_dialog(tokens: list[str]) -> str:
-        selector.set_options(tokens)
+        selector.set_options(tokens, value=tokens[0])
 
         while True:
             result = await dialog
