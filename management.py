@@ -13,7 +13,7 @@ command_pattern = r'^>([^:]+):(.*)$'
 class State:
     def __init__(self):
         self.pkcs11_id_count: int = 0
-        self.pksc11_ids: list[str] = []
+        self.pkcs11_ids: list[str] = []
 
 
 class OpenVPNConnection:
@@ -92,6 +92,7 @@ class OpenVPNConnection:
             return
 
         self.state.pkcs11_id_count = int(message)
+        self.state.pkcs11_ids = ['loading'] * self.state.pkcs11_id_count
 
         for id in range(self.state.pkcs11_id_count):
             logger.debug(f'Getting pkcs11-id #{id}')
@@ -107,14 +108,14 @@ class OpenVPNConnection:
             token_id: str = match.group('id')
 
             logger.debug(f'Set pkcs11id {token_id}: {index}')
-            self.state.pksc11_ids.append(token_id)
+            self.state.pkcs11_ids[index] = token_id
 
             if (index + 1) == self.state.pkcs11_id_count:
                 for selector in self.pkcs11_id_selectors:
                     logger.debug(
-                        f'Selecting one of the following tokens: {self.state.pksc11_ids}')
-                    selector(self.state.pksc11_ids, lambda token: self.send_command(
-                        commands.needstr('pkcs11-id-request', token)))
+                        f'Selecting one of the following tokens: {self.state.pkcs11_ids}')
+                    token: str = await selector(self.state.pkcs11_ids)
+                    await self.send_command(commands.needstr('pkcs11-id-request', token))
 
     async def send_command(self, command: commands.Command):
         if self.writer is None:
