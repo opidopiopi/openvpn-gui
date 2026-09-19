@@ -28,5 +28,5 @@ def verbosity(level: int):
     return Command('verb', str(level))
 
 
-def status_on():
-    return Command('status', 'on')
+def state_on():
+    return Command('state', 'on')
