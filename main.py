@@ -30,13 +30,13 @@ async def close_connection():
 async def check_connection():
     while not connection.connected():
         with ui.dialog() as dialog, ui.card():
-            ui.label(f'Failed to connect to {host}:{port}')
-            ui.label('Reconnect?')
+            _ = ui.label(f'Failed to connect to {host}:{port}')
+            _ = ui.label('Reconnect?')
             with ui.row():
-                ui.button('Yes', color='green',
-                          on_click=lambda: dialog.submit(True))
-                ui.button('No', color='red',
-                          on_click=lambda: dialog.submit(False))
+                _ = ui.button('Yes', color='green',
+                              on_click=lambda: dialog.submit(True))
+                _ = ui.button('No', color='red',
+                              on_click=lambda: dialog.submit(False))
         if await dialog:
             await open_connection()
         else:
