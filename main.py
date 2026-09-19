@@ -4,17 +4,24 @@ import logging
 from nicegui import ui, app
 from management import OpenVPNConnection
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 parser = argparse.ArgumentParser(prog='OpenVPN-GUI')
 _ = parser.add_argument('-p', '--port', type=int)
 _ = parser.add_argument(
     '-n', '--native', help='show native window', action="store_true")
+_ = parser.add_argument('-v', '--verbose', action="store_true")
+_ = parser.add_argument('-vv', '--very_verbose', action="store_true")
 
 arguments = parser.parse_args()
+
+if arguments.very_verbose:
+    logging.basicConfig(level=logging.DEBUG)
+elif arguments.verbose:
+    logging.basicConfig(level=logging.INFO)
+else:
+    logging.basicConfig(level=logging.WARNING)
 
 connection = OpenVPNConnection(port=arguments.port)
 
