@@ -16,6 +16,18 @@ class State:
         self.pkcs11_ids: list[str] = []
 
 
+def default_log(level: str, message: str):
+    logger.info(f'{level} {message}')
+
+
+def default_pkcs11_selection(tokens: list[str]):
+    logger.info(f'Select token: {tokens}')
+
+
+def default_password_input(name: str):
+    logger.info(f'Enter password {name}')
+
+
 class OpenVPNConnection:
     def __init__(self, port: int):
         self.host: str = '127.0.0.1'
@@ -30,9 +42,9 @@ class OpenVPNConnection:
             'LOG': self._log,
         }
         self.state: State = State()
-        self.log_listeners = [lambda level, message: logger.debug(message)]
-        self.pkcs11_id_selectors = []
-        self.password_selectors = []
+        self.callback_log = default_log
+        self.callback_pkcs11_id_selection = default_pkcs11_selection
+        self.callback_password_input = default_password_input
         self.incoming_task = None
         self.writer = None
 
@@ -60,18 +72,23 @@ class OpenVPNConnection:
 
         return not self.incoming_task.done()
 
-    def add_pkcs11_id_selector(self, selector):
-        logger.debug('BLUB')
-        self.pkcs11_id_selectors.append(selector)
+    def set_log_callback(self, listener):
+        self.callback_log = listener
 
-    def add_log_listener(self, listener):
-        self.log_listeners.append(listener)
+    def reset_log_callback(self):
+        self.callback_log = default_log
 
-    def remove_log_listener(self, listener):
-        self.log_listeners.remove(listener)
+    def set_pkcs11_id_callback(self, selector):
+        self.callback_pkcs11_id_selection = selector
 
-    def add_password_selector(self, selector):
-        self.password_selectors.append(selector)
+    def reset_pkcs11_id_callback(self):
+        self.callback_pkcs11_id_selection = default_pkcs11_selection
+
+    def set_password_callback(self, selector):
+        self.callback_password_input = selector
+
+    def reset_password_callback(self):
+        self.callback_password_input = default_password_input
 
     async def loglevel(self, level: int):
         logger.debug(f'Set verbosity to {level}')
@@ -89,8 +106,7 @@ class OpenVPNConnection:
 
         match = re.match(message_pattern, message)
         if match is not None:
-            for listener in self.log_listeners:
-                listener(match.group('flag'), match.group('message'))
+            self.callback_log(match.group('flag'), match.group('message'))
 
     async def _set_pkcs11id_count(self, message: str):
         if not message.isdigit():
@@ -111,9 +127,8 @@ class OpenVPNConnection:
 
         if match is not None:
             logger.debug(f'Requesting password {match.group('password_name')}')
-            for selector in self.password_selectors:
-                password: str = await selector(match.group('password_name'))
-                await self.send_command(commands.password(match.group('password_name'), password))
+            password: str = await self.callback_password_input(match.group('password_name'))
+            await self.send_command(commands.password(match.group('password_name'), password))
 
     async def _set_pkcs11id_entry(self, message: str):
         message_pattern = r"'(?P<index>\d)', ID:'(?P<id>[^']+)', BLOB:'(?P<blob>[^']+)'"
@@ -128,11 +143,10 @@ class OpenVPNConnection:
             self.state.pkcs11_ids[index] = token_id
 
             if (index + 1) == self.state.pkcs11_id_count:
-                for selector in self.pkcs11_id_selectors:
-                    logger.debug(
-                        f'Selecting one of the following tokens: {self.state.pkcs11_ids}')
-                    token: str = await selector(self.state.pkcs11_ids)
-                    await self.send_command(commands.needstr('pkcs11-id-request', token))
+                logger.debug(
+                    f'Selecting one of the following tokens: {self.state.pkcs11_ids}')
+                token: str = await self.callback_pkcs11_id_selection(self.state.pkcs11_ids)
+                await self.send_command(commands.needstr('pkcs11-id-request', token))
 
     async def send_command(self, command: commands.Command):
         if self.writer is None:

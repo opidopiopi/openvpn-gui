@@ -44,7 +44,7 @@ def page():
         log = ui.log()  # .classes('w-full h-100')
 
     def logger(level, message): return show_log(level, message, log)
-    connection.add_log_listener(logger)
+    connection.set_log_callback(logger)
 
     with ui.dialog() as dialog, ui.card():
         _ = dialog.props('persistent')
@@ -59,7 +59,7 @@ def page():
             if result is not None and len(result) > 0:
                 return str(result)
 
-    connection.add_pkcs11_id_selector(show_pkcs11_dialog)
+    connection.set_pkcs11_id_callback(show_pkcs11_dialog)
 
     with ui.dialog() as password_dialog, ui.card():
         _ = password_dialog.props('persistent')
@@ -73,10 +73,11 @@ def page():
         await password_dialog
         return password_input.value
 
-    connection.add_password_selector(show_password_dialog)
+    connection.set_password_callback(show_password_dialog)
 
-    ui.context.client.on_disconnect(
-        lambda: connection.remove_log_listener(logger))
+    ui.context.client.on_disconnect(connection.reset_log_callback)
+    ui.context.client.on_disconnect(connection.reset_pkcs11_id_callback)
+    ui.context.client.on_disconnect(connection.reset_password_callback)
 
 
 async def close_connection():
@@ -88,10 +89,10 @@ async def check_connection():
         try:
             await connection.management_connect()
         except:
-            logger.error(f'Failed to connect to {host}:{port}')
+            logger.error(f'Failed to connect to management client')
 
             with ui.dialog() as dialog, ui.card():
-                _ = ui.label(f'Failed to connect to {host}:{port}')
+                _ = ui.label(f'Failed to connect to management')
                 _ = ui.label('Reconnect?')
                 with ui.row():
                     _ = ui.button('Yes', color='green',
