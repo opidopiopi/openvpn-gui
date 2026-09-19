@@ -25,11 +25,13 @@ class OpenVPNConnection:
             'NEED-STR': self._need_string,
             'PKCS11ID-COUNT': self._set_pkcs11id_count,
             'PKCS11ID-ENTRY': self._set_pkcs11id_entry,
+            'PASSWORD': self._ask_password,
             'LOG': self._log,
         }
         self.state: State = State()
         self.log_listeners = [lambda level, message: logger.debug(message)]
         self.pkcs11_id_selectors = []
+        self.password_selectors = []
         self.incoming_task = None
         self.writer = None
 
@@ -67,6 +69,9 @@ class OpenVPNConnection:
     def remove_log_listener(self, listener):
         self.log_listeners.remove(listener)
 
+    def add_password_selector(self, selector):
+        self.password_selectors.append(selector)
+
     async def loglevel(self, level: int):
         logger.debug(f'Set verbosity to {level}')
         await self.send_command(commands.verbosity(level))
@@ -97,6 +102,17 @@ class OpenVPNConnection:
         for id in range(self.state.pkcs11_id_count):
             logger.debug(f'Getting pkcs11-id #{id}')
             await self.send_command(commands.pkcs11_id_get(id))
+
+    async def _ask_password(self, message: str):
+        message_pattern = r"[^']+'(?P<password_name>[^']+)'[^']+"
+
+        match = re.match(message_pattern, message)
+
+        if match is not None:
+            logger.debug(f'Requesting password {match.group('password_name')}')
+            for selector in self.password_selectors:
+                password: str = await selector(match.group('password_name'))
+                await self.send_command(commands.password(match.group('password_name'), password))
 
     async def _set_pkcs11id_entry(self, message: str):
         message_pattern = r"'(?P<index>\d)', ID:'(?P<id>[^']+)', BLOB:'(?P<blob>[^']+)'"

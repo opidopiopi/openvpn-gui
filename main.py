@@ -39,14 +39,31 @@ def page():
     connection.add_log_listener(logger)
 
     with ui.dialog() as dialog, ui.card():
+        _ = dialog.props('persistent')
         _ = ui.label('Please select one of the following Tokens:')
         selector = ui.select([], on_change=lambda e: dialog.submit(e.value))
 
-    async def test(tokens: list[str]) -> str:
+    async def show_pkcs11_dialog(tokens: list[str]) -> str:
         selector.set_options(tokens)
-        return await dialog
 
-    connection.add_pkcs11_id_selector(test)
+        while True:
+            result = await dialog
+            if result is not None and len(result) > 0:
+                return str(result)
+
+    connection.add_pkcs11_id_selector(show_pkcs11_dialog)
+
+    with ui.dialog() as password_dialog, ui.card():
+        _ = password_dialog.props('persistent')
+        _ = ui.label('Please enter the password for:')
+        password_input = ui.input(password=True, password_toggle_button=True)
+        _ = ui.button('Enter', on_click=lambda: password_dialog.close())
+
+    async def show_password_dialog(password_name: str):
+        await password_dialog
+        return password_input.value
+
+    connection.add_password_selector(show_password_dialog)
 
     ui.context.client.on_disconnect(
         lambda: connection.remove_log_listener(logger))
