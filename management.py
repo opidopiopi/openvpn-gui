@@ -17,9 +17,10 @@ class State:
 
 
 class OpenVPNConnection:
-    def __init__(self, host: str, port: int):
-        self.host: str = host
+    def __init__(self, port: int):
+        self.host: str = '127.0.0.1'
         self.port: int = port
+
         self.incoming_commands = {
             'INFO': self._incoming_info,
             'NEED-STR': self._need_string,

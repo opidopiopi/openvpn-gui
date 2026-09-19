@@ -1,3 +1,5 @@
+import sys
+import argparse
 import logging
 from nicegui import ui, app
 from management import OpenVPNConnection
@@ -7,8 +9,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-host, port = ('127.0.0.1', 8888)
-connection = OpenVPNConnection(host, port)
+parser = argparse.ArgumentParser(prog='OpenVPN-GUI')
+_ = parser.add_argument('-p', '--port', type=int)
+_ = parser.add_argument(
+    '-n', '--native', help='show native window', action="store_true")
+
+arguments = parser.parse_args()
+
+connection = OpenVPNConnection(port=arguments.port)
 
 
 def show_log(level: str, message: str, log: ui.log):
@@ -95,4 +103,4 @@ async def check_connection():
 
 app.on_connect(check_connection)
 app.on_disconnect(close_connection)
-ui.run()
+ui.run(native=arguments.native)
