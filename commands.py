@@ -38,3 +38,15 @@ def needstr(type: str, message: str):
 
 def password(type: str, password: str):
     return Command('password', f"'{type}' '{password}'")
+
+
+def hold_release():
+    return Command('hold', 'release')
+
+
+def hold_on():
+    return Command('hold', 'on')
+
+
+def sighup():
+    return Command('signal', 'SIGHUP')

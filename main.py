@@ -1,4 +1,4 @@
-import sys
+import time
 import argparse
 import logging
 from nicegui import ui, app
@@ -30,8 +30,18 @@ def show_log(level: str, message: str, log: ui.log):
 
 @ui.page('/')
 def page():
-    with ui.column().classes('w-full'):
+    with ui.column().classes('w-full h-full'):
         _ = ui.label('Initializing...')
+
+        async def toggle_connection():
+            if switch.value:
+                await connection.client_connect()
+                switch.text = 'Disonnect'
+            else:
+                await connection.client_disconnect()
+                switch.text = 'Connect'
+
+        switch = ui.switch('Connect', on_change=toggle_connection)
 
         _ = ui.space()
         with ui.row():
@@ -71,7 +81,8 @@ def page():
     async def show_password_dialog(password_name: str):
         password_label.text = f"Please enter the password for: '{password_name}'"
         await password_dialog
-        return password_input.value
+        password, password_input.value = password_input.value, ''
+        return password
 
     connection.set_password_callback(show_password_dialog)
 
