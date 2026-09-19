@@ -39,17 +39,17 @@ def page():
 
 async def open_connection():
     try:
-        await connection.connect()
+        await connection.management_connect()
     except:
         logger.error(f'Failed to connect to {host}:{port}')
 
 
 async def close_connection():
-    await connection.close()
+    await connection.management_disconnect()
 
 
 async def check_connection():
-    while not connection.connected():
+    while not connection.management_connected():
         with ui.dialog() as dialog, ui.card():
             _ = ui.label(f'Failed to connect to {host}:{port}')
             _ = ui.label('Reconnect?')

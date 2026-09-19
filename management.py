@@ -30,7 +30,7 @@ class OpenVPNConnection:
         self.state: State = State()
         self.log_listeners = [lambda level, message: logger.debug(message)]
 
-    async def connect(self):
+    async def management_connect(self):
         logger.debug(f'Connecting to {self.host}:{self.port}')
         reader, writer = await asyncio.open_connection(self.host, self.port)
         logger.debug('Connected!')
@@ -42,12 +42,12 @@ class OpenVPNConnection:
         self.task_queue.put_nowait(commands.state_on())
         self.task_queue.put_nowait(commands.log_on())
 
-    async def close(self):
+    async def management_disconnect(self):
         self.task_queue.put_nowait(commands.exit())
         await self.outgoing_task
         await self.incoming_task
 
-    def connected(self):
+    def management_connected(self):
         if self.outgoing_task:
             return not self.outgoing_task.done() and not self.incoming_task.done()
         return False
