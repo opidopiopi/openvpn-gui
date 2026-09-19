@@ -34,3 +34,7 @@ def state_on():
 
 def needstr(type: str, message: str):
     return Command('needstr', f"'{type}' '{message}'")
+
+
+def password(type: str, password: str):
+    return Command('password', f"'{type}' '{password}'")
