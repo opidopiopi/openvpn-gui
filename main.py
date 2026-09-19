@@ -37,16 +37,19 @@ def page():
 
     def logger(level, message): return show_log(level, message, log)
     connection.add_log_listener(logger)
-    # connection.add_pkcs11_id_selector(show_pkcs11_dialog)
-    ui.context.client.on_disconnect(
-        lambda: connection.remove_log_listener(logger))
 
-
-def show_pkcs11_dialog(tokens: list[str], callback):
-    logger.debug('Show token selection dialog')
     with ui.dialog() as dialog, ui.card():
         _ = ui.label('Please select one of the following Tokens:')
-        selector = ui.select(tokens)
+        selector = ui.select([], on_change=lambda e: dialog.submit(e.value))
+
+    async def test(tokens: list[str]) -> str:
+        selector.set_options(tokens)
+        return await dialog
+
+    connection.add_pkcs11_id_selector(test)
+
+    ui.context.client.on_disconnect(
+        lambda: connection.remove_log_listener(logger))
 
 
 async def close_connection():
