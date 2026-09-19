@@ -55,12 +55,13 @@ def page():
 
     with ui.dialog() as password_dialog, ui.card():
         _ = password_dialog.props('persistent')
-        _ = ui.label('Please enter the password for:')
+        password_label = ui.label('Please enter the password for:')
         password_input = ui.input(password=True, password_toggle_button=True).on(
             'keydown.enter', password_dialog.close)
         _ = ui.button('Submit', on_click=lambda: password_dialog.close())
 
     async def show_password_dialog(password_name: str):
+        password_label.text = f"Please enter the password for: '{password_name}'"
         await password_dialog
         return password_input.value
 
