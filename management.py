@@ -72,6 +72,13 @@ class OpenVPNConnection:
 
         return not self.incoming_task.done()
 
+    async def client_connect(self):
+        await self.send_command(commands.hold_release())
+
+    async def client_disconnect(self):
+        await self.send_command(commands.hold_on())
+        await self.send_command(commands.sighup())
+
     def set_log_callback(self, listener):
         self.callback_log = listener
 
