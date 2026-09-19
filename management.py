@@ -5,7 +5,6 @@ import re
 import commands
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 command_pattern = r'^>([^:]+):(.*)$'
 
