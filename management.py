@@ -39,7 +39,7 @@ class OpenVPNConnection:
         self.task_queue.put_nowait(commands.log_on())
         self.task_queue.put_nowait(commands.bytecount_on(1))
         self.task_queue.put_nowait(commands.status_on())
-        
+
     async def close(self):
         self.task_queue.put_nowait(commands.exit())
         await self.outgoing_task
@@ -59,7 +59,7 @@ class OpenVPNConnection:
         if not message.isdigit():
             logger.error(f'Invalid pkcs11id count: {message}')
             return
-        
+
         for id in range(int(message)):
             logger.debug(f'Getting pkcs11-id #{id}')
             self.task_queue.put_nowait(commands.pkcs11_id_get(id))
@@ -70,7 +70,8 @@ class OpenVPNConnection:
         match = re.match(message_pattern, message)
 
         if match is not None:
-            logger.debug(f'Set pkcs11id {match.group('index')}: {match.group('id')}')
+            logger.debug(
+                f'Set pkcs11id {match.group('index')}: {match.group('id')}')
 
     async def outgoing_worker(self, writer: asyncio.StreamWriter):
         logger.debug('Starting outgoing worker')
@@ -79,7 +80,8 @@ class OpenVPNConnection:
 
             logger.debug(f'Sending: {command.command} {command.payload}')
 
-            writer.write(f'{command.command} {command.payload}'.rstrip().encode('utf-8'))
+            writer.write(
+                f'{command.command} {command.payload}'.rstrip().encode('utf-8'))
             writer.write('\n'.encode('utf-8'))
             await writer.drain()
 
@@ -106,6 +108,7 @@ class OpenVPNConnection:
                 command, message = match.groups()
                 logger.debug(f'CMD: {command}, MSG: {message}')
 
-                command = self.incoming_commands.get(command, self.incoming_info)(message)
+                command = self.incoming_commands.get(
+                    command, self.incoming_info)(message)
 
         logger.debug('Stopping incoming worker')
