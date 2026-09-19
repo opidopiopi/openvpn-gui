@@ -30,3 +30,7 @@ def verbosity(level: int):
 
 def state_on():
     return Command('state', 'on')
+
+
+def needstr(type: str, message: str):
+    return Command('needstr', f"'{type}' '{message}'")
