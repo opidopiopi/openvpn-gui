@@ -66,7 +66,9 @@ def page():
     with ui.dialog() as dialog, ui.card():
         _ = dialog.props('persistent')
         _ = ui.label('Please select one of the following Tokens:')
-        selector = ui.select([], on_change=lambda e: dialog.submit(e.value))
+        with ui.row():
+            selector = ui.select([])
+            _ = ui.button('ok', on_click=lambda: dialog.submit(selector.value))
 
     async def show_pkcs11_dialog(tokens: list[str]) -> str:
         selector.set_options(tokens)
