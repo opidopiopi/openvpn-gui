@@ -1,7 +1,8 @@
 import argparse
 import logging
-from nicegui import ui, app
+from nicegui import ui, app, Event, Client
 from management import OpenVPNConnection
+from connection import State
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,15 @@ def show_log(level: str, message: str, log: ui.log):
 
 
 @ui.page('/')
-def page():
+def page(client: Client):
+    ui.add_head_html('''
+        <style>
+        .body--dark {
+          background: #0f1117;
+        }
+        </style>
+    ''')
+
     client_storage = app.storage.client
 
     if 'connection' not in client_storage:
@@ -41,8 +50,41 @@ def page():
 
     connection = client_storage['connection']
 
+    _ = ui.colors(brandorange='#ea7e20', brandblue='#003366')
+    ui.dark_mode().enable()
+
     with ui.column().classes('w-full h-full'):
-        _ = ui.label('Initializing...')
+
+        state = Event[State]()
+
+        with ui.row():
+            with ui.card().classes('w-50 bg-brandorange'):
+                _ = ui.label('Your private IP:').classes('font-bold')
+                local_address = ui.label('').classes('whitespace-pre-line')
+
+            with ui.card().classes('w-50 bg-brandblue'):
+                _ = ui.label('Remote server IP:').classes(
+                    'font-bold text-white')
+                remote_address = ui.label('').classes(
+                    'whitespace-pre-line text-white')
+
+        state_overview = ui.label('Initializing...').classes('font-bold')
+
+        def update_state(new_state: State):
+            state_overview.text = new_state.timestamp.strftime('%H:%M:%S')
+            state_overview.text += f': {new_state.state}'
+            if new_state.description:
+                state_overview.text += f' ({new_state.description})'
+
+            local_address.text = f'IPv4: {new_state.local_ipv4}\n'
+            local_address.text += f'IPv6: {new_state.local_ipv6}'
+
+            remote_address.text = f'Address: {new_state.remote_address}\n'
+            remote_address.text += f'Port: {new_state.remote_port}'
+
+        state.subscribe(update_state)
+
+        connection.set_state_change_callback(lambda s: state.emit(s))
 
         async def toggle_connection():
             if switch.value:
