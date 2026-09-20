@@ -62,8 +62,8 @@ class OpenVPNConnection:
 
         await self.send_command(commands.bytecount_on(1))
         await self.send_command(commands.state_on())
-        await self.send_command(commands.log_on())
         await self.send_command(commands.state_last())
+        await self.send_command(commands.log_on())
 
     async def management_disconnect(self):
         if self.incoming_task is None:
@@ -117,9 +117,14 @@ class OpenVPNConnection:
 
         match = re.match(message_pattern, message)
         if match is not None:
+            if match.group('message').startswith('MANAGEMENT'):
+                logger.debug(message)
+                return
+
             timestamp = datetime.datetime.fromtimestamp(
                 int(match.group('timestamp'))).strftime('%H:%M:%S')
             message = f'{timestamp}: {match.group('message')}'
+
             self.callback_log(match.group('flag'), message)
 
     async def _set_pkcs11id_count(self, message: str):
