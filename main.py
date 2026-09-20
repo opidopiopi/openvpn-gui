@@ -99,10 +99,6 @@ def page():
 
     connection.set_password_callback(show_password_dialog)
 
-    ui.context.client.on_disconnect(connection.reset_log_callback)
-    ui.context.client.on_disconnect(connection.reset_pkcs11_id_callback)
-    ui.context.client.on_disconnect(connection.reset_password_callback)
-
 
 async def close_connection():
     client_storage = app.storage.client

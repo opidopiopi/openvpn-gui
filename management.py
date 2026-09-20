@@ -82,20 +82,12 @@ class OpenVPNConnection:
     def set_log_callback(self, listener):
         self.callback_log = listener
 
-    def reset_log_callback(self):
-        self.callback_log = default_log
-
     def set_pkcs11_id_callback(self, selector):
         self.callback_pkcs11_id_selection = selector
-
-    def reset_pkcs11_id_callback(self):
-        self.callback_pkcs11_id_selection = default_pkcs11_selection
 
     def set_password_callback(self, selector):
         self.callback_password_input = selector
 
-    def reset_password_callback(self):
-        self.callback_password_input = default_password_input
 
     async def loglevel(self, level: int):
         logger.debug(f'Set verbosity to {level}')
