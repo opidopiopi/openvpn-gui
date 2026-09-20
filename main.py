@@ -53,22 +53,23 @@ def page(client: Client):
     _ = ui.colors(brandorange='#ea7e20', brandblue='#003366')
     ui.dark_mode().enable()
 
-    with ui.column().classes('w-full h-full'):
+    with ui.grid(columns=2).classes('w-full h-full'):
 
         state = Event[State]()
 
-        with ui.row():
-            with ui.card().classes('w-50 bg-brandorange'):
-                _ = ui.label('Your private IP:').classes('font-bold')
-                local_address = ui.label('').classes('whitespace-pre-line')
+        with ui.card().classes('w-full bg-brandorange'):
+            _ = ui.label('Your private IP:').classes('font-bold')
+            local_address = ui.label('IPv4:\nIPv6:').classes(
+                'whitespace-pre-line')
 
-            with ui.card().classes('w-50 bg-brandblue'):
-                _ = ui.label('Remote server IP:').classes(
-                    'font-bold text-white')
-                remote_address = ui.label('').classes(
-                    'whitespace-pre-line text-white')
+        with ui.card().classes('w-full bg-brandblue'):
+            _ = ui.label('Remote server IP:').classes(
+                'font-bold text-white')
+            remote_address = ui.label('Address:\nPort:').classes(
+                'whitespace-pre-line text-white')
 
-        state_overview = ui.label('Initializing...').classes('font-bold')
+        state_overview = ui.label('Initializing...').classes(
+            'font-bold col-span-full')
 
         def update_state(new_state: State):
             state_overview.text = new_state.timestamp.strftime('%H:%M:%S')
@@ -98,7 +99,6 @@ def page(client: Client):
 
         switch = ui.switch('Connect', on_change=toggle_connection)
 
-        _ = ui.space()
         with ui.row():
             _ = ui.label('Loglevel:')
             loglevel = ui.slider(min=0, max=11, value=3).props(
@@ -106,7 +106,7 @@ def page(client: Client):
             _ = loglevel.on('update:model-value',
                             lambda e: connection.loglevel(e.args), throttle=1.0)
 
-        log = ui.log()
+        log = ui.log().classes('col-span-full')
 
     def logger(level, message): return show_log(level, message, log)
     connection.set_log_callback(logger)
