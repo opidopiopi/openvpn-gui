@@ -1,4 +1,3 @@
-import time
 import argparse
 import logging
 from nicegui import ui, app
@@ -23,8 +22,6 @@ elif arguments.verbose:
 else:
     logging.basicConfig(level=logging.WARNING)
 
-connection = OpenVPNConnection(port=arguments.port)
-
 
 def show_log(level: str, message: str, log: ui.log):
     if 'F' in level:
@@ -37,6 +34,13 @@ def show_log(level: str, message: str, log: ui.log):
 
 @ui.page('/')
 def page():
+    client_storage = app.storage.client
+
+    if 'connection' not in client_storage:
+        client_storage['connection'] = OpenVPNConnection(port=arguments.port)
+
+    connection = client_storage['connection']
+
     with ui.column().classes('w-full h-full'):
         _ = ui.label('Initializing...')
 
@@ -101,10 +105,17 @@ def page():
 
 
 async def close_connection():
-    await connection.management_disconnect()
+    client_storage = app.storage.client
+
+    if 'connection' in client_storage:
+        await client_storage['connection'].management_disconnect()
 
 
 async def check_connection():
+    client_storage = app.storage.client
+
+    connection: OpenVPNConnection = client_storage['connection']
+
     while not connection.management_connected():
         try:
             await connection.management_connect()
