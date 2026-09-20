@@ -28,6 +28,10 @@ def verbosity(level: int):
     return Command('verb', str(level))
 
 
+def state_last():
+    return Command('state', '1')
+
+
 def state_on():
     return Command('state', 'on')
 
