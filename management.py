@@ -4,6 +4,7 @@ import re
 import datetime
 
 import commands
+import connection
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,10 @@ def default_password_input(name: str):
     logger.info(f'Enter password {name}')
 
 
+def default_update_state(state: connection.State):
+    logger.info(f'State update: {state}')
+
+
 class OpenVPNConnection:
     def __init__(self, port: int):
         self.host: str = '127.0.0.1'
@@ -40,11 +45,13 @@ class OpenVPNConnection:
             'PKCS11ID-ENTRY': self._set_pkcs11id_entry,
             'PASSWORD': self._ask_password,
             'LOG': self._log,
+            'STATE': self._state_change,
         }
         self.state: State = State()
         self.callback_log = default_log
         self.callback_pkcs11_id_selection = default_pkcs11_selection
         self.callback_password_input = default_password_input
+        self.callback_state_change = default_update_state
         self.incoming_task = None
         self.writer = None
 
@@ -88,10 +95,16 @@ class OpenVPNConnection:
     def set_password_callback(self, selector):
         self.callback_password_input = selector
 
+    def set_state_change_callback(self, selector):
+        self.callback_state_change = selector
 
     async def loglevel(self, level: int):
         logger.debug(f'Set verbosity to {level}')
         await self.send_command(commands.verbosity(level))
+
+    async def _state_change(self, message: str):
+        state: connection.State = connection.parse_status(message)
+        self.callback_state_change(state)
 
     async def _incoming_info(self, message: str):
         logger.info(message)
