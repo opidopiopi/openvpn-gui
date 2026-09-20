@@ -47,10 +47,12 @@ def page():
         async def toggle_connection():
             if switch.value:
                 await connection.client_connect()
-                switch.text = 'Disonnect'
+                switch.text = 'Connected'
+                _ = switch.props('color=green')
             else:
                 await connection.client_disconnect()
-                switch.text = 'Connect'
+                switch.text = 'Disconnected'
+                _ = switch.props('color=grey')
 
         switch = ui.switch('Connect', on_change=toggle_connection)
 
