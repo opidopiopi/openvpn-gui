@@ -43,6 +43,8 @@ def page(client: Client):
         </style>
     ''')
 
+    ui.page_title('OpenVPN Client')
+
     client_storage = app.storage.client
 
     if 'connection' not in client_storage:
@@ -50,7 +52,8 @@ def page(client: Client):
 
     connection = client_storage['connection']
 
-    _ = ui.colors(brandorange='#ea7e20', brandblue='#003366')
+    _ = ui.colors(primary='#ea7e20', brandorange='#ea7e20',
+                  brandblue='#003366')
     ui.dark_mode().enable()
 
     with ui.grid(columns=2).classes('w-full h-full'):
@@ -72,6 +75,9 @@ def page(client: Client):
             'font-bold col-span-full')
 
         def update_state(new_state: State):
+            if new_state.connected():
+                switch.value = True
+
             state_overview.text = new_state.timestamp.strftime('%H:%M:%S')
             state_overview.text += f': {new_state.state}'
             if new_state.description:
@@ -108,8 +114,8 @@ def page(client: Client):
 
         log = ui.log().classes('col-span-full')
 
-    def logger(level, message): return show_log(level, message, log)
-    connection.set_log_callback(logger)
+    def log_callback(level, message): return show_log(level, message, log)
+    connection.set_log_callback(log_callback)
 
     with ui.dialog() as dialog, ui.card():
         _ = dialog.props('persistent')

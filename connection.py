@@ -14,6 +14,9 @@ class State:
     local_port: str
     local_ipv6: str
 
+    def connected(self):
+        return self.state == 'CONNECTED'
+
 
 def parse_status(message: str) -> State:
     split: list[str] = message.split(',')

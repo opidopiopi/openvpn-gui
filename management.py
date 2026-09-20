@@ -8,8 +8,6 @@ import connection
 
 logger = logging.getLogger(__name__)
 
-command_pattern = r'^>([^:]+):(.*)$'
-
 
 class State:
     def __init__(self):
@@ -65,6 +63,7 @@ class OpenVPNConnection:
         await self.send_command(commands.bytecount_on(1))
         await self.send_command(commands.state_on())
         await self.send_command(commands.log_on())
+        await self.send_command(commands.state_last())
 
     async def management_disconnect(self):
         if self.incoming_task is None:
@@ -175,6 +174,8 @@ class OpenVPNConnection:
         await self.writer.drain()
 
     async def _incoming_worker(self, reader: asyncio.StreamReader):
+        command_pattern = r'^>([^:]+):(.*)$'
+
         logger.debug('Starting incoming worker')
         while True:
             line = await reader.readline()
@@ -190,5 +191,8 @@ class OpenVPNConnection:
                 logger.debug(f'CMD: {command}, MSG: {message}')
 
                 await self.incoming_commands.get(command, self._incoming_info)(message)
+            elif line and line.count(',') > 3:
+                # special case for the initial `state 1` request
+                await self._state_change(line)
 
         logger.debug('Stopping incoming worker')
