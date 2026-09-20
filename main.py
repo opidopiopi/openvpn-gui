@@ -112,6 +112,37 @@ def page(client: Client):
             _ = loglevel.on('update:model-value',
                             lambda e: connection.loglevel(e.args), throttle=1.0)
 
+        bytes_in_data = []
+        bytes_out_data = []
+        bandwidth_chart = ui.echart({
+            'xAxis': {'type': 'category', 'show': False},
+            'yAxis': {'type': 'value'},
+            'legend': {'show': 'false'},  # 'textStyle': {'color': 'gray'}},
+            'series': [
+                {'type': 'line', 'color': '#ea7e20',
+                 'areaStyle': {'color': '#ea7e20'},
+                 'showSymbol': False,
+                 'name': 'Bytes in', 'data': bytes_in_data},
+                {'type': 'line', 'color': '#003366',
+                 'areaStyle': {'color': '#003366'},
+                 'showSymbol': False,
+                 'name': 'Bytes out', 'data': bytes_out_data},
+            ],
+        }).classes('col-span-full')
+
+        def update_chart(bytes_in: int, bytes_out: int):
+            chart_in_data = bandwidth_chart.options['series'][0]['data']
+            chart_out_data = bandwidth_chart.options['series'][1]['data']
+
+            chart_in_data.append(bytes_in)
+            chart_out_data.append(bytes_out)
+
+            if len(chart_in_data) > 60:
+                chart_in_data.pop(0)
+                chart_out_data.pop(0)
+
+        connection.set_bytecount_callback(update_chart)
+
         log = ui.log().classes('col-span-full')
 
     def log_callback(level, message): return show_log(level, message, log)

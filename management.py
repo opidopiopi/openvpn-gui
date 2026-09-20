@@ -31,6 +31,10 @@ def default_update_state(state: connection.State):
     logger.info(f'State update: {state}')
 
 
+def default_bytecount(bytes_in: int, bytes_out: int):
+    logger.info(f'Bytecount: in: {bytes_in} out: {bytes_out}')
+
+
 class OpenVPNConnection:
     def __init__(self, port: int):
         self.host: str = '127.0.0.1'
@@ -44,12 +48,14 @@ class OpenVPNConnection:
             'PASSWORD': self._ask_password,
             'LOG': self._log,
             'STATE': self._state_change,
+            'BYTECOUNT': self._bytecount,
         }
         self.state: State = State()
         self.callback_log = default_log
         self.callback_pkcs11_id_selection = default_pkcs11_selection
         self.callback_password_input = default_password_input
         self.callback_state_change = default_update_state
+        self.callback_bytecount = default_bytecount
         self.incoming_task = None
         self.writer = None
 
@@ -97,9 +103,21 @@ class OpenVPNConnection:
     def set_state_change_callback(self, selector):
         self.callback_state_change = selector
 
+    def set_bytecount_callback(self, callback):
+        self.callback_bytecount = callback
+
     async def loglevel(self, level: int):
         logger.debug(f'Set verbosity to {level}')
         await self.send_command(commands.verbosity(level))
+
+    async def _bytecount(self, message: str):
+        message_pattern = r'(?P<bytes_in>\d+),(?P<bytes_out>\d+)'
+
+        match = re.match(message_pattern, message)
+        if match is not None:
+            bytes_in = int(match.group('bytes_in'))
+            bytes_out = int(match.group('bytes_out'))
+            self.callback_bytecount(bytes_in, bytes_out)
 
     async def _state_change(self, message: str):
         state: connection.State = connection.parse_status(message)
