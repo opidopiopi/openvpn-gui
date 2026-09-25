@@ -1,8 +1,9 @@
 import argparse
 import logging
-from nicegui import ui, app, Event, Client
+from nicegui import ui, app, Event
 from management import OpenVPNConnection
 from connection import State
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ def show_log(level: str, message: str, log: ui.log):
 
 
 @ui.page('/')
-def page(client: Client):
+def page():
     ui.add_head_html('''
         <style>
         .body--dark {
@@ -93,7 +94,7 @@ def page(client: Client):
 
         connection.set_state_change_callback(lambda s: state.emit(s))
 
-        async def toggle_connection():
+        async def toggle_connection() -> None:
             if switch.value:
                 await connection.client_connect()
                 switch.text = 'Connected'
