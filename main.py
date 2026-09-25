@@ -113,12 +113,26 @@ def page():
             _ = loglevel.on('update:model-value',
                             lambda e: connection.loglevel(e.args), throttle=1.0)
 
-        bytes_in_data = []
-        bytes_out_data = []
+        bytecount_data_lenght = 60
+        bytes_in_data = [0] * bytecount_data_lenght
+        bytes_out_data = [0] * bytecount_data_lenght
+
+        byte_formatter: str = '''
+        function (value) {
+            power = Math.floor(Math.log(value) / Math.log(1024))
+
+            const prefix = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'I dont think so']
+            value = Math.floor(value / (power * 1024))
+            if (value < 1 || !isFinite(value)) {
+                return ''
+            }
+            return `${value} ${prefix[power] || '?'}`
+        }
+        '''
         bandwidth_chart = ui.echart({
             'xAxis': {'type': 'category', 'show': False},
-            'yAxis': {'type': 'value'},
-            'legend': {'show': 'false'},  # 'textStyle': {'color': 'gray'}},
+            'yAxis': {'type': 'value', 'axisLabel': {':formatter': byte_formatter}},
+            'legend': {'show': 'false'},
             'series': [
                 {'type': 'line', 'color': '#ea7e20',
                  'areaStyle': {'color': '#ea7e20'},
@@ -138,7 +152,7 @@ def page():
             chart_in_data.append(bytes_in)
             chart_out_data.append(bytes_out)
 
-            if len(chart_in_data) > 60:
+            if len(chart_in_data) > bytecount_data_lenght:
                 chart_in_data.pop(0)
                 chart_out_data.pop(0)
 
