@@ -5,7 +5,7 @@ from management import OpenVPNConnection
 from connection import State
 import bandwidth
 import dialogs
-import commands
+from state_widget import StateWidget
 
 
 logger = logging.getLogger(__name__)
@@ -60,43 +60,13 @@ def page():
                   brandblue='#003366')
     ui.dark_mode().enable()
 
+    state: Event[State] = Event[State]()
+    connection.set_state_change_callback(state.emit)
+
+    state_widget = StateWidget()
+    state.subscribe(state_widget.update)
+
     with ui.grid(columns=2).classes('w-full h-full'):
-
-        state = Event[State]()
-
-        with ui.card().classes('w-full bg-brandorange'):
-            _ = ui.label('Your private IP:').classes('font-bold')
-            local_address = ui.label('IPv4:\nIPv6:').classes(
-                'whitespace-pre-line')
-
-        with ui.card().classes('w-full bg-brandblue'):
-            _ = ui.label('Remote server IP:').classes(
-                'font-bold text-white')
-            remote_address = ui.label('Address:\nPort:').classes(
-                'whitespace-pre-line text-white')
-
-        state_overview = ui.label('Initializing...').classes(
-            'font-bold col-span-full')
-
-        def update_state(new_state: State):
-            if new_state.connected():
-                switch.value = True
-
-            state_overview.text = new_state.timestamp.strftime('%H:%M:%S')
-            state_overview.text += f': {new_state.state}'
-            if new_state.description:
-                state_overview.text += f' ({new_state.description})'
-
-            local_address.text = f'IPv4: {new_state.local_ipv4}\n'
-            local_address.text += f'IPv6: {new_state.local_ipv6}'
-
-            remote_address.text = f'Address: {new_state.remote_address}\n'
-            remote_address.text += f'Port: {new_state.remote_port}'
-
-        state.subscribe(update_state)
-
-        connection.set_state_change_callback(lambda s: state.emit(s))
-
         async def toggle_connection() -> None:
             if switch.value:
                 await connection.client_connect()
@@ -106,6 +76,12 @@ def page():
                 await connection.client_disconnect()
                 switch.text = 'Disconnected'
                 _ = switch.props('color=grey')
+
+        def update_switch(new_state):
+            if new_state.connected():
+                switch.value = True
+
+        state.subscribe(update_switch)
 
         switch = ui.switch('Connect', on_change=toggle_connection)
 
