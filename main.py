@@ -4,6 +4,8 @@ from nicegui import ui, app, Event
 from management import OpenVPNConnection
 from connection import State
 import bandwidth
+import dialogs
+import commands
 
 
 logger = logging.getLogger(__name__)
@@ -123,37 +125,11 @@ def page():
     def log_callback(level, message): return show_log(level, message, log)
     connection.set_log_callback(log_callback)
 
-    with ui.dialog() as dialog, ui.card():
-        _ = dialog.props('persistent')
-        _ = ui.label('Please select one of the following Tokens:')
-        with ui.row():
-            selector = ui.select([])
-            _ = ui.button('ok', on_click=lambda: dialog.submit(selector.value))
+    token_dialog = dialogs.TokenDialog()
+    connection.set_pkcs11_id_callback(token_dialog.show_dialog)
 
-    async def show_pkcs11_dialog(tokens: list[str]) -> str:
-        selector.set_options(tokens, value=tokens[0])
-
-        while True:
-            result = await dialog
-            if result is not None and len(result) > 0:
-                return str(result)
-
-    connection.set_pkcs11_id_callback(show_pkcs11_dialog)
-
-    with ui.dialog() as password_dialog, ui.card():
-        _ = password_dialog.props('persistent')
-        password_label = ui.label('Please enter the password for:')
-        password_input = ui.input(password=True, password_toggle_button=True).on(
-            'keydown.enter', password_dialog.close)
-        _ = ui.button('Submit', on_click=lambda: password_dialog.close())
-
-    async def show_password_dialog(password_name: str):
-        password_label.text = f"Please enter the password for: '{password_name}'"
-        await password_dialog
-        password, password_input.value = password_input.value, ''
-        return password
-
-    connection.set_password_callback(show_password_dialog)
+    password_dialog = dialogs.PasswordDialog()
+    connection.set_password_callback(password_dialog.show_dialog)
 
 
 async def close_connection():
