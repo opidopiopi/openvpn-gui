@@ -3,6 +3,7 @@ import logging
 from nicegui import ui, app, Event
 from management import OpenVPNConnection
 from connection import State
+import bandwidth
 
 
 logger = logging.getLogger(__name__)
@@ -113,50 +114,9 @@ def page():
             _ = loglevel.on('update:model-value',
                             lambda e: connection.loglevel(e.args), throttle=1.0)
 
-        bytecount_data_lenght = 60
-        bytes_in_data = [0] * bytecount_data_lenght
-        bytes_out_data = [0] * bytecount_data_lenght
+        bandwidth_graph = bandwidth.BandwidthGraph(60)
 
-        byte_formatter: str = '''
-        function (value) {
-            power = Math.floor(Math.log(value) / Math.log(1024))
-
-            const prefix = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'I dont think so']
-            value = Math.floor(value / (power * 1024))
-            if (value < 1 || !isFinite(value)) {
-                return ''
-            }
-            return `${value} ${prefix[power] || '?'}`
-        }
-        '''
-        bandwidth_chart = ui.echart({
-            'xAxis': {'type': 'category', 'show': False},
-            'yAxis': {'type': 'value', 'axisLabel': {':formatter': byte_formatter}},
-            'legend': {'show': 'false'},
-            'series': [
-                {'type': 'line', 'color': '#ea7e20',
-                 'areaStyle': {'color': '#ea7e20'},
-                 'showSymbol': False,
-                 'name': 'Bytes in', 'data': bytes_in_data},
-                {'type': 'line', 'color': '#003366',
-                 'areaStyle': {'color': '#003366'},
-                 'showSymbol': False,
-                 'name': 'Bytes out', 'data': bytes_out_data},
-            ],
-        }).classes('col-span-full')
-
-        def update_chart(bytes_in: int, bytes_out: int):
-            chart_in_data = bandwidth_chart.options['series'][0]['data']
-            chart_out_data = bandwidth_chart.options['series'][1]['data']
-
-            chart_in_data.append(bytes_in)
-            chart_out_data.append(bytes_out)
-
-            if len(chart_in_data) > bytecount_data_lenght:
-                chart_in_data.pop(0)
-                chart_out_data.pop(0)
-
-        connection.set_bytecount_callback(update_chart)
+        connection.set_bytecount_callback(bandwidth_graph.update_graph)
 
         log = ui.log().classes('col-span-full')
 
