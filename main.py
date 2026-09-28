@@ -5,6 +5,7 @@ from management import OpenVPNConnection
 from connection import State
 import bandwidth
 import dialogs
+import logview
 from state_widget import StateWidget
 
 
@@ -26,15 +27,6 @@ elif arguments.verbose:
     logging.basicConfig(level=logging.INFO)
 else:
     logging.basicConfig(level=logging.WARNING)
-
-
-def show_log(level: str, message: str, log: ui.log):
-    if 'F' in level:
-        log.push(message, classes='text-red')
-    if 'W' in level:
-        log.push(message, classes='text-orange')
-    else:
-        log.push(message)
 
 
 @ui.page('/')
@@ -96,10 +88,9 @@ def page():
 
         connection.set_bytecount_callback(bandwidth_graph.update_graph)
 
-        log = ui.log().classes('col-span-full')
+        log_view = logview.Logview()
 
-    def log_callback(level, message): return show_log(level, message, log)
-    connection.set_log_callback(log_callback)
+    connection.set_log_callback(log_view.append)
 
     token_dialog = dialogs.TokenDialog()
     connection.set_pkcs11_id_callback(token_dialog.show_dialog)
