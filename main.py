@@ -3,10 +3,8 @@ import logging
 from nicegui import ui, app, Event
 from management import OpenVPNConnection
 from connection import State
-import bandwidth
-import dialogs
-import logview
-from state_widget import StateWidget
+
+from ui import BandwidthGraph, PasswordDialog, TokenDialog, StateWidget, Logview
 
 
 logger = logging.getLogger(__name__)
@@ -84,18 +82,18 @@ def page():
             _ = loglevel.on('update:model-value',
                             lambda e: connection.loglevel(e.args), throttle=1.0)
 
-        bandwidth_graph = bandwidth.BandwidthGraph(60)
+        bandwidth_graph = BandwidthGraph(60)
 
         connection.set_bytecount_callback(bandwidth_graph.update_graph)
 
-        log_view = logview.Logview()
+        log_view = Logview()
 
     connection.set_log_callback(log_view.append)
 
-    token_dialog = dialogs.TokenDialog()
+    token_dialog = TokenDialog()
     connection.set_pkcs11_id_callback(token_dialog.show_dialog)
 
-    password_dialog = dialogs.PasswordDialog()
+    password_dialog = PasswordDialog()
     connection.set_password_callback(password_dialog.show_dialog)
 
 
