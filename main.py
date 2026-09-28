@@ -42,7 +42,7 @@ def page():
     client_storage = app.storage.client
 
     if 'connection' not in client_storage:
-        client_storage['connection'] = OpenVPNConnection(port=arguments.port)
+        client_storage['connection'] = OpenVPNConnection()
 
     connection: OpenVPNConnection = client_storage['connection']
 
@@ -51,7 +51,6 @@ def page():
     ui.dark_mode().enable()
 
     state: Event[State] = Event[State]()
-    connection.set_state_change_callback(state.emit)
 
     state_widget = StateWidget()
     state.subscribe(state_widget.update)
@@ -84,17 +83,19 @@ def page():
 
         bandwidth_graph = BandwidthGraph(60)
 
-        connection.set_bytecount_callback(bandwidth_graph.update_graph)
-
         log_view = Logview()
 
-    connection.set_log_callback(log_view.append)
-
-    token_dialog = TokenDialog()
-    connection.set_pkcs11_id_callback(token_dialog.show_dialog)
+    token_dialog = TokenDialog(connection)
 
     password_dialog = PasswordDialog()
-    connection.set_password_callback(password_dialog.show_dialog)
+
+    connection.callback_state_change = state.emit
+    connection.callback_bytecount = bandwidth_graph.update_graph
+    connection.callback_log = log_view.append
+    connection.callback_password_input = password_dialog.trigger_dialog
+    connection.callback_pkcs11_id_selection = token_dialog.trigger_selection
+
+    logger.debug('Page loaded')
 
 
 async def close_connection():

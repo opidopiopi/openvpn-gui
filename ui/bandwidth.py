@@ -1,4 +1,5 @@
 from nicegui import ui
+from openvpn import connection
 
 
 class BandwidthGraph:
@@ -43,12 +44,12 @@ class BandwidthGraph:
             ],
         }).classes('col-span-full')
 
-    def update_graph(self, bytes_in: int, bytes_out: int) -> None:
+    def update_graph(self, bytecount: connection.Bytecount) -> None:
         chart_in_data = self._bandwidth_chart.options['series'][0]['data']
         chart_out_data = self._bandwidth_chart.options['series'][1]['data']
 
-        chart_in_data.append(bytes_in)
-        chart_out_data.append(bytes_out)
+        chart_in_data.append(bytecount.bytes_incoming)
+        chart_out_data.append(bytecount.bytes_outgoing)
 
         if len(chart_in_data) > self._max_count:
             chart_in_data.pop(0)

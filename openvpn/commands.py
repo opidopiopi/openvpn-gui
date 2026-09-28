@@ -5,52 +5,52 @@ class Command:
 
 
 def exit():
-    return Command('exit', '')
+    return 'exit'
 
 
 def pkcs11_id_count():
-    return Command('pkcs11-id-count', '')
+    return 'pkcs11-id-count'
 
 
 def pkcs11_id_get(index: int):
-    return Command('pkcs11-id-get', str(index))
+    return f'pkcs11-id-get {str(index)}'
 
 
 def bytecount_on(seconds: int):
-    return Command('bytecount', str(seconds))
+    return f'bytecount {str(seconds)}'
 
 
 def log_on():
-    return Command('log', 'on')
+    return 'log on'
 
 
 def verbosity(level: int):
-    return Command('verb', str(level))
+    return f'verb {str(level)}'
 
 
 def state_last():
-    return Command('state', '1')
+    return 'state 1'
 
 
 def state_on():
-    return Command('state', 'on')
+    return 'state on'
 
 
-def needstr(type: str, message: str):
-    return Command('needstr', f"'{type}' '{message}'")
+def needstr(type: str, message: str) -> str:
+    return f"needstr '{type}' '{message}'"
 
 
-def password(type: str, password: str):
-    return Command('password', f"'{type}' '{password}'")
+def password(type: str, password: str) -> str:
+    return f"password '{type}' '{password}'"
 
 
 def hold_release():
-    return Command('hold', 'release')
+    return 'hold release'
 
 
 def hold_on():
-    return Command('hold', 'on')
+    return 'hold on'
 
 
 def sighup():
-    return Command('signal', 'SIGHUP')
+    return 'signal SIGHUP'
