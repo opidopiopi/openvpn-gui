@@ -1,5 +1,5 @@
 from nicegui import ui
-from connection import State
+from openvpn.connection import State
 
 
 class StateWidget:
