@@ -3,6 +3,12 @@ from dataclasses import dataclass
 
 
 @dataclass
+class Bytecount:
+    bytes_incoming: int
+    bytes_outgoing: int
+
+
+@dataclass
 class State:
     timestamp: datetime.datetime
     state: str

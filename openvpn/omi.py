@@ -184,7 +184,8 @@ class OmiProtocol(asyncio.Protocol):
     def recv_line(self, line: str):
         # special case for pkcs11 commands ...
         if line.startswith(">PKCS11ID"):
-            self._response.append(f'SUCCESS:{line[1:]}')
+            value = line[1:].split(':', 1)[1]
+            self._response.append(f'SUCCESS:{value}')
             self._response_ready.set()
         elif line.startswith(">"):
             self.recv_notify(line)
@@ -198,6 +199,9 @@ class OmiProtocol(asyncio.Protocol):
             return
 
         command, args = line[1:].split(":", 1)
+
+        # python doens't allow for hyphen in member names
+        command = command.replace('-', '_')
 
         # do dynamic dispatch based on command to call a handler
         if hasattr(self, f"recv_notify_{command}"):
@@ -230,7 +234,7 @@ class OmiProtocol(asyncio.Protocol):
 
         asyncio.create_task(self._release_hold_task(hold_time))
 
-    def queue_command(self, command) -> Future[OmiCommandResult]:
+    def queue_command(self, command: str) -> Future[OmiCommandResult]:
         cmd = OmiSendCommand(command, Future())
         self._send_queue.put_nowait(cmd)
         return cmd.result

@@ -1,8 +1,11 @@
-from nicegui import ui
+from nicegui import ui, Event
 
 
 class PasswordDialog:
     def __init__(self):
+        self._event: Event[bool] = Event()
+        self._event.subscribe(self.show_dialog)
+
         with ui.dialog() as password_dialog, ui.card():
             self._password_dialog: ui.dialog = password_dialog
             _ = password_dialog.props('persistent')
@@ -11,8 +14,12 @@ class PasswordDialog:
                                                       password_toggle_button=True).on('keydown.enter', password_dialog.close)
             _ = ui.button('Submit', on_click=lambda: password_dialog.close())
 
-    async def show_dialog(self, password_name: str) -> str:
-        self._password_label.text = f"Please enter the password for: '{password_name}'"
+    def trigger_dialog(self, callback):
+        self._callback = callback
+        self._event.emit(True)
+
+    async def show_dialog(self) -> None:
+        self._password_label.text = "Please enter the password: "
         await self._password_dialog
         password, self._password_input.value = self._password_input.value, ''
-        return password if password else ''
+        self._callback(password)
