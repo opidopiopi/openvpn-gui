@@ -1,8 +1,8 @@
 import argparse
 import logging
 from nicegui import ui, app, Event
-from management import OpenVPNConnection
-from connection import State
+from openvpn.management import OpenVPNConnection
+from openvpn.connection import State
 
 from ui import BandwidthGraph, PasswordDialog, TokenDialog, StateWidget, Logview
 
@@ -44,7 +44,7 @@ def page():
     if 'connection' not in client_storage:
         client_storage['connection'] = OpenVPNConnection(port=arguments.port)
 
-    connection = client_storage['connection']
+    connection: OpenVPNConnection = client_storage['connection']
 
     _ = ui.colors(primary='#ea7e20', brandorange='#ea7e20',
                   brandblue='#003366')

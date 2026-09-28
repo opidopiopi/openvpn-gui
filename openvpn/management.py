@@ -3,8 +3,8 @@ import logging
 import re
 import datetime
 
-import commands
-import connection
+from . import commands
+from . import connection
 
 logger = logging.getLogger(__name__)
 
