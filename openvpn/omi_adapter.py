@@ -68,6 +68,10 @@ class OmiAdapter(omi.OmiProtocol):
         bytes_in, bytes_out = args.split(',', 1)
         self._vpn_client.on_bytecount(connection.Bytecount(int(bytes_in), int(bytes_out)))
 
+    @override
+    def recv_notify_HOLD(self, args):
+        pass
+
     def _trigger_token_selection(self, message: str):
         def token_callback(token: str):
             return self.queue_command(commands.needstr(PKCS11_ID_REQUEST,
