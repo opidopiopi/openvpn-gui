@@ -17,7 +17,11 @@ class StateWidget:
                     'whitespace-pre-line text-white')
 
             self._state_overview: ui.label = ui.label('Initializing...').classes(
-                'font-bold col-span-full')
+                'font-bold')
+
+            with ui.row():
+                _ = ui.label('Routes:').classes('font-bold')
+                self._routes: ui.label = ui.label('').classes('whitespace-pre-line')
 
     def update(self, new_state: State):
         self._state_overview.text = new_state.timestamp.strftime('%H:%M:%S')
@@ -30,3 +34,9 @@ class StateWidget:
 
         self._remote_address.text = f'Address: {new_state.remote_address}\n'
         self._remote_address.text += f'Port: {new_state.remote_port}'
+
+    def clear_routes(self):
+        self._routes.text = ''
+
+    def add_route(self, route: str):
+        self._routes.text += f'{route}\n'

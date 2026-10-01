@@ -51,9 +51,11 @@ def page():
     ui.dark_mode().enable()
 
     state: Event[State] = Event[State]()
+    new_route: Event[str] = Event[str]()
 
     state_widget = StateWidget()
     state.subscribe(state_widget.update)
+    new_route.subscribe(state_widget.add_route)
 
     with ui.grid(columns=2).classes('w-full h-full'):
         async def toggle_connection() -> None:
@@ -62,6 +64,7 @@ def page():
                 switch.text = 'Connected'
                 _ = switch.props('color=green')
             else:
+                state_widget.clear_routes()
                 await connection.client_disconnect()
                 switch.text = 'Disconnected'
                 _ = switch.props('color=grey')
@@ -94,6 +97,7 @@ def page():
     connection.callback_log = log_view.append
     connection.callback_password_input = password_dialog.trigger_dialog
     connection.callback_pkcs11_id_selection = token_dialog.trigger_selection
+    connection.callback_add_route = new_route.emit
 
     logger.debug('Page loaded')
 

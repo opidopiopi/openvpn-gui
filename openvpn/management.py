@@ -76,5 +76,9 @@ class OpenVPNConnection(client.VPNClient):
         self.callback_state_change(state)
 
     def on_log(self, timestamp, flag: str, message: str) -> None:
+        if message.startswith('net_route_v4_add'):
+            route = message.split(':')[1]
+            self.callback_add_route(route)
+
         message = f'{timestamp}: {message}'
         self.callback_log(flag, message)
