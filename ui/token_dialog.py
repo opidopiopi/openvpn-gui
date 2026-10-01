@@ -11,8 +11,14 @@ class TokenDialog:
         with ui.dialog() as dialog, ui.card():
             _ = dialog.props('persistent')
             self._label = ui.label('Please select one of the following Tokens:')
+
+            with ui.card():
+                self._issuer = ui.label()
+                self._subject = ui.label()
+                self._valid_until = ui.label()
+
             with ui.row():
-                selector = ui.select([])
+                selector = ui.select([], on_change=lambda e: self.show_token_info(e.value))
                 _ = ui.button(
                     'ok', on_click=lambda: dialog.submit(selector.value))
                 self._selector = selector
@@ -30,16 +36,23 @@ class TokenDialog:
         self._callback = callback
         self._show_dialog.emit(True)
 
+    def show_token_info(self, token_index):
+        cert = self._tokens[token_index].certificate
+        self._issuer.text = f'Issuer: {cert.issuer.rfc4514_string()}'
+        self._subject.text = f'Subject: {cert.subject.rfc4514_string()}'
+        valid_until: str = cert.not_valid_after_utc.strftime('%d.%m.%Y %H:%M:%S')
+        self._valid_until.text = f'Valid until: {valid_until}'
+
     async def show_dialog(self) -> None:
         while True:
-            tokens = await self._vpn_connection.pkcs11_tokens()
+            self._tokens = await self._vpn_connection.pkcs11_tokens()
 
-            if len(tokens) > 0:
+            if len(self._tokens) > 0:
                 break
 
             await self.show_warning()
 
-        selection = {i: token.name for i, token in enumerate(tokens)}
+        selection = {i: token.name for i, token in enumerate(self._tokens)}
 
         self._selector.set_options(selection,
                                    value=self._last_selection if self._last_selection else 0)
@@ -47,4 +60,4 @@ class TokenDialog:
         result = await self._dialog
         if result is not None:
             self._last_selection = result
-            self._callback(tokens[result].name)
+            self._callback(self._tokens[result].token_id)
