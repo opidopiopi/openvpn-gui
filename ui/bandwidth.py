@@ -6,11 +6,13 @@ class BandwidthGraph:
     def __init__(self, max_count: int):
         self._max_count: int = 60
 
+        self.last = connection.Bytecount(0, 0)
+
         byte_formatter: str = '''
         function (value) {
             power = Math.floor(Math.log(value) / Math.log(1024))
 
-            const prefix = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'I dont think so']
+            const prefix = ['B/s', 'KiB/s', 'MiB/s', 'GiB/s', 'TiB/s', 'I dont think so']
             value = Math.floor(value / (power * 1024))
             if (value < 1 || !isFinite(value)) {
                 return ''
@@ -48,8 +50,10 @@ class BandwidthGraph:
         chart_in_data = self._bandwidth_chart.options['series'][0]['data']
         chart_out_data = self._bandwidth_chart.options['series'][1]['data']
 
-        chart_in_data.append(bytecount.bytes_incoming)
-        chart_out_data.append(bytecount.bytes_outgoing)
+        chart_in_data.append(bytecount.bytes_incoming - self.last.bytes_incoming)
+        chart_out_data.append(bytecount.bytes_outgoing - self.last.bytes_outgoing)
+
+        self.last = bytecount
 
         if len(chart_in_data) > self._max_count:
             chart_in_data.pop(0)
