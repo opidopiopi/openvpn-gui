@@ -49,7 +49,16 @@ def page():
 
     _ = ui.colors(primary='#ea7e20', brandorange='#ea7e20',
                   brandblue='#003366')
-    ui.dark_mode().enable()
+
+    with ui.left_drawer(value=False).props('bordered') as left_drawer, ui.column().classes('h-full'):
+        _ = ui.space()
+        with ui.row():
+            dark_mode_switch = ui.switch(
+                'Dark mode:', value=True).props('left-label')
+            ui.dark_mode().bind_value(dark_mode_switch, 'value')
+
+    with ui.header():
+        _ = ui.button(icon='menu', on_click=lambda e: left_drawer.toggle())
 
     state: Event[State] = Event[State]()
     new_route: Event[str] = Event[str]()
