@@ -8,7 +8,17 @@ from typing import override
 logger = logging.getLogger(__name__)
 
 
-async def connect_to_port(socket: str, vpn_client: client.VPNClient) -> tuple[OmiAdapter, asyncio.Future[bool]]:
+async def connect_to_port(port: int, vpn_client: client.VPNClient) -> tuple[OmiAdapter, asyncio.Future[bool]]:
+    loop = asyncio.get_running_loop()
+    finish_future = loop.create_future()
+
+    _, protocol = await loop.create_connection(
+            lambda: OmiAdapter(finish_future, vpn_client), host='127.0.0.1', port=port)
+
+    return protocol, finish_future
+
+
+async def connect_to_socket(socket: str, vpn_client: client.VPNClient) -> tuple[OmiAdapter, asyncio.Future[bool]]:
     loop = asyncio.get_running_loop()
     finish_future = loop.create_future()
 

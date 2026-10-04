@@ -19,19 +19,30 @@ class OpenVPNConnection(client.VPNClient):
         self._connection_closed: asyncio.Future[bool] = asyncio.Future()
         self._connection_closed.set_result(True)
 
-    async def management_connect(self):
-        logger.debug('Connecting...')
+    async def connect_to_socket(self, socket: str):
+        logger.debug(f'Connecting to {socket} ...')
+        self._connection, self._connection_closed = await omi_adapter.connect_to_socket(socket, self)
+        await self._management_connect()
 
-        self._connection, self._connection_closed = await omi_adapter.connect_to_port('/tmp/openvpn-connection', self)
-        await self._connection.management_ready()
+    async def connect_to_port(self, port: int):
+        logger.debug(f'Connecting to 127.0.0.1:{port} ...')
+        self._connection, self._connection_closed = await omi_adapter.connect_to_port(port, self)
+        await self._management_connect()
+
+    async def _management_connect(self) -> None:
+        _ = await self._connection.management_ready()
         self.callback_management_connected()
 
         logger.debug('Connected!')
 
         await self.send_command(commands.bytecount_on(1))
         await self.send_command(commands.state_on())
+
+        # for the possibility that the connection is already up
+        # we simulate a state change
         result = await self._connection.queue_command(commands.state_last())
         self.callback_state_change(connection.parse_status(result.result[0]))
+
         await self.send_command(commands.log_on())
 
     async def management_disconnect(self):

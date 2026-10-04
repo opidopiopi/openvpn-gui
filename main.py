@@ -12,7 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 parser = argparse.ArgumentParser(prog='OpenVPN-GUI')
-_ = parser.add_argument('-p', '--port', type=int)
+
+connection_group = parser.add_mutually_exclusive_group(required=True)
+_ = connection_group.add_argument('-p', '--port', type=int)
+_ = connection_group.add_argument('-s', '--socket', type=str)
 _ = parser.add_argument(
     '-n', '--native', help='show native window', action="store_true")
 _ = parser.add_argument('-v', '--verbose', action="store_true")
@@ -125,7 +128,10 @@ async def check_connection():
 
     while not connection.management_connected():
         try:
-            await connection.management_connect()
+            if arguments.socket:
+                await connection.connect_to_socket(arguments.socket)
+            elif arguments.port:
+                await connection.connect_to_port(arguments.port)
         except Exception as e:
             logger.error(f'Failed to connect to management client: {repr(e)}')
 
