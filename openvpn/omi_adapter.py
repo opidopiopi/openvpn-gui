@@ -39,6 +39,7 @@ class OmiAdapter(omi.OmiProtocol):
     @override
     def recv_notify_INFO(self, args: str):
         logger.info(f'Info from management: {args}')
+        super().recv_notify_INFO(args)
 
     def recv_notify_NEED_STR(self, args: str) -> None:
         if PKCS11_ID_REQUEST in args:

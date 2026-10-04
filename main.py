@@ -4,7 +4,8 @@ from nicegui import ui, app, Event
 from openvpn.management import OpenVPNConnection
 from openvpn.connection import State
 
-from ui import BandwidthGraph, PasswordDialog, TokenDialog, StateWidget, Logview
+from ui import BandwidthGraph, PasswordDialog, TokenDialog, StateWidget
+from ui import Logview, AwaitConnection
 
 
 logger = logging.getLogger(__name__)
@@ -89,8 +90,8 @@ def page():
         log_view = Logview()
 
     token_dialog = TokenDialog(connection)
-
     password_dialog = PasswordDialog()
+    await_management_connection = AwaitConnection()
 
     connection.callback_state_change = state.emit
     connection.callback_bytecount = bandwidth_graph.update_graph
@@ -98,6 +99,7 @@ def page():
     connection.callback_password_input = password_dialog.trigger_dialog
     connection.callback_pkcs11_id_selection = token_dialog.trigger_selection
     connection.callback_add_route = new_route.emit
+    connection.callback_management_connected = await_management_connection.dispose
 
     logger.debug('Page loaded')
 

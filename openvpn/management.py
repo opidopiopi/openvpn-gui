@@ -23,6 +23,8 @@ class OpenVPNConnection(client.VPNClient):
         logger.debug('Connecting...')
 
         self._connection, self._connection_closed = await omi_adapter.connect_to_port('/tmp/openvpn-connection', self)
+        await self._connection.management_ready()
+        self.callback_management_connected()
 
         logger.debug('Connected!')
 

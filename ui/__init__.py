@@ -3,3 +3,4 @@ from .password_dialog import PasswordDialog as PasswordDialog
 from .token_dialog import TokenDialog as TokenDialog
 from .bandwidth import BandwidthGraph as BandwidthGraph
 from .logview import Logview as Logview
+from .await_management_connection import AwaitConnection as AwaitConnection
