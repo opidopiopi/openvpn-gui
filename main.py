@@ -38,8 +38,6 @@ def page():
         </style>
     ''')
 
-    ui.page_title('OpenVPN Client')
-
     client_storage = app.storage.client
 
     if 'connection' not in client_storage:
@@ -47,8 +45,8 @@ def page():
 
     connection: OpenVPNConnection = client_storage['connection']
 
-    _ = ui.colors(primary='#ea7e20', brandorange='#ea7e20',
-                  brandblue='#003366')
+    _ = ui.colors(primary='#ED7F22', brandorange='#ED7F22',
+                  brandblue='#1652B8')
 
     with ui.left_drawer(value=False).props('bordered') as left_drawer, ui.column().classes('h-full'):
         _ = ui.space()
@@ -145,4 +143,4 @@ async def check_connection():
 
 app.on_connect(check_connection)
 app.on_disconnect(close_connection)
-ui.run(native=arguments.native)
+ui.run(native=arguments.native, host='127.0.0.1', title='OpenVPN Client', favicon='images/openvpn-icon.svg')
