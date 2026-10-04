@@ -26,7 +26,7 @@ class TokenDialog:
 
     async def show_warning(self):
         with ui.dialog() as dialog, ui.card():
-            _ = ui.label('No pkcs11 ids found, please insert your smartcard')
+            _ = ui.label('No pkcs11 ids found, please insert your smartcard!')
             _ = ui.button('ok', on_click=lambda: dialog.close())
             await dialog
 
