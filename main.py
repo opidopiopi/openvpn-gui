@@ -119,11 +119,12 @@ async def check_connection():
     while not connection.management_connected():
         try:
             await connection.management_connect()
-        except:
-            logger.error(f'Failed to connect to management client')
+        except Exception as e:
+            logger.error(f'Failed to connect to management client: {repr(e)}')
 
             with ui.dialog() as dialog, ui.card():
-                _ = ui.label(f'Failed to connect to management')
+                _ = ui.label(
+                    f'Failed to connect to management interface: {repr(e)}')
                 _ = ui.label('Reconnect?')
                 with ui.row():
                     _ = ui.button('Yes', color='green',
