@@ -133,17 +133,16 @@ async def check_connection():
             elif arguments.port:
                 await connection.connect_to_port(arguments.port)
         except Exception as e:
-            logger.error(f'Failed to connect to management client: {repr(e)}')
+            logger.error(f'Failed to connect to management client: {e}')
 
             with ui.dialog() as dialog, ui.card():
                 _ = ui.label(
-                    f'Failed to connect to management interface: {repr(e)}')
-                _ = ui.label('Reconnect?')
+                    f'Failed to connect to management interface: {e}')
                 with ui.row():
-                    _ = ui.button('Yes', color='green',
+                    _ = ui.button('Reconnect', color='green',
                                   on_click=lambda: dialog.close())
-                    _ = ui.button('No', color='red',
-                                  on_click=lambda: dialog.close())
+                    _ = ui.button('Exit', color='red',
+                                  on_click=app.shutdown)
             await dialog
 
 

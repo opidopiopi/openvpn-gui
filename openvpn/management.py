@@ -50,7 +50,7 @@ class OpenVPNConnection(client.VPNClient):
             _ = self._connection.queue_command(commands.exit())
             await self._connection_closed
 
-    def management_connected(self):
+    def management_connected(self) -> bool:
         return not self._connection_closed.done()
 
     async def client_connect(self):
