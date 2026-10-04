@@ -35,8 +35,9 @@ class OpenVPNConnection(client.VPNClient):
         await self.send_command(commands.log_on())
 
     async def management_disconnect(self):
-        _ = self._connection.queue_command(commands.exit())
-        await self._connection_closed
+        if self.management_connected():
+            _ = self._connection.queue_command(commands.exit())
+            await self._connection_closed
 
     def management_connected(self):
         return not self._connection_closed.done()
