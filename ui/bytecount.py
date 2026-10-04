@@ -2,7 +2,7 @@ from nicegui import ui
 from openvpn import connection
 
 
-class BandwidthGraph:
+class BytecountGraph:
     def __init__(self, max_count: int):
         self._max_count: int = 60
 

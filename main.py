@@ -4,7 +4,7 @@ from nicegui import ui, app, Event
 from openvpn.management import OpenVPNConnection
 from openvpn.connection import State
 
-from ui import BandwidthGraph, PasswordDialog, TokenDialog, StateWidget
+from ui import BytecountGraph, PasswordDialog, TokenDialog, StateWidget
 from ui import Logview, AwaitConnection
 
 
@@ -95,7 +95,7 @@ def page():
             _ = loglevel.on('update:model-value',
                             lambda e: connection.loglevel(e.args), throttle=1.0)
 
-        bandwidth_graph = BandwidthGraph(60)
+        bandwidth_graph = BytecountGraph(60)
 
         log_view = Logview()
 
