@@ -38,6 +38,19 @@ pkcs11-pin-cache 60
 ```
 
 
+# Build
+
+To build and run just:
+```
+uv run openvpn-gui
+```
+
+To build a self contained executable use:
+```
+uv run --extra package nicegui-pack --onefile --name "openvpn-gui" src/openvpn_gui/main.py
+```
+
+
 # Shameless copies
 
 `omi.py` is copied from https://gerrit.openvpn.net/c/openvpn/+/1859 with slight modifications
