@@ -768,7 +768,7 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-true = [
+package = [
     { name = "pyinstaller" },
 ]
 
@@ -776,10 +776,10 @@ true = [
 requires-dist = [
     { name = "cryptography", specifier = ">=50.0.2" },
     { name = "nicegui", specifier = ">=3.17.1" },
-    { name = "pyinstaller", marker = "extra == 'true'", specifier = ">=6.22.3" },
+    { name = "pyinstaller", marker = "extra == 'package'", specifier = ">=6.22.3" },
     { name = "pywebview", extras = ["gtk"], specifier = ">=6.2.1" },
 ]
-provides-extras = ["true"]
+provides-extras = ["package"]
 
 [[package]]
 name = "orjson"
