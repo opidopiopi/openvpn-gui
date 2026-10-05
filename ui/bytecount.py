@@ -4,7 +4,7 @@ from openvpn import connection
 
 class BytecountGraph:
     def __init__(self, max_count: int):
-        self._max_count: int = 60
+        self._max_count: int = 300
 
         self.last = connection.Bytecount(0, 0)
 
@@ -32,12 +32,14 @@ class BytecountGraph:
                 'show': 'false'},
             'series': [
                 {'type': 'line',
+                 'smooth': True,
                  'color': '#ea7e20',
                  'areaStyle': {'color': '#ea7e20'},
                  'showSymbol': False,
                  'name': 'Bytes in',
                  'data': [0] * self._max_count},
                 {'type': 'line',
+                 'smooth': True,
                  'color': '#003366',
                  'areaStyle': {'color': '#003366'},
                  'showSymbol': False,
