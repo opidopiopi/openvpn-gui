@@ -1,13 +1,18 @@
 import argparse
 import logging
 
+from multiprocessing import freeze_support
 from nicegui import ui, app, Event
 
-from .openvpn.management import OpenVPNConnection
-from .openvpn.connection import State
+from openvpn_gui.openvpn.management import OpenVPNConnection
+from openvpn_gui.openvpn.connection import State
 
-from .gui import BytecountGraph, PasswordDialog, TokenDialog, StateWidget
-from .gui import Logview, AwaitConnection
+from openvpn_gui.gui import BytecountGraph, PasswordDialog, TokenDialog, StateWidget
+from openvpn_gui.gui import Logview, AwaitConnection
+
+
+# prevent infinite process glitch
+freeze_support()
 
 
 logger = logging.getLogger(__name__)
@@ -151,10 +156,11 @@ async def check_connection():
                     _ = ui.button("Exit", color="red", on_click=app.shutdown)
             await dialog
 
-
 app.on_connect(check_connection)
 app.on_disconnect(close_connection)
+
 ui.run(
+    reload=False,
     native=arguments.native,
     host="127.0.0.1",
     title="OpenVPN Client",
