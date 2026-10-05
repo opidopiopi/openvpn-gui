@@ -38,6 +38,12 @@ pkcs11-pin-cache 60
 ```
 
 
+# Shameless copies
+
+`omi.py` is copied from https://gerrit.openvpn.net/c/openvpn/+/1859 with slight modifications
+to fix the inconsistencies of `pkcs11-id-get` and some bugfixes.
+
+
 # Copyright/Branding notice
 
 This project is in no way affiliated to the company nor the open source project OpenVPN.
