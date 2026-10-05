@@ -10,7 +10,8 @@ class TokenDialog:
 
         with ui.dialog() as dialog, ui.card():
             _ = dialog.props('persistent')
-            self._label = ui.label('Please select one of the following Tokens:')
+            self._label = ui.label(
+                'Please select one of the following Tokens:')
 
             with ui.card():
                 self._issuer = ui.label()
@@ -18,7 +19,8 @@ class TokenDialog:
                 self._valid_until = ui.label()
 
             with ui.row():
-                selector = ui.select([], on_change=lambda e: self.show_token_info(e.value))
+                selector = ui.select(
+                    [], on_change=lambda e: self.show_token_info(e.value))
                 _ = ui.button(
                     'ok', on_click=lambda: dialog.submit(selector.value))
                 self._selector = selector
@@ -30,7 +32,6 @@ class TokenDialog:
             _ = ui.button('ok', on_click=lambda: dialog.close())
             await dialog
 
-
     def trigger_selection(self, message: str, callback) -> None:
         self._label.set_text(message)
         self._callback = callback
@@ -40,7 +41,8 @@ class TokenDialog:
         cert = self._tokens[token_index].certificate
         self._issuer.text = f'Issuer: {cert.issuer.rfc4514_string()}'
         self._subject.text = f'Subject: {cert.subject.rfc4514_string()}'
-        valid_until: str = cert.not_valid_after_utc.strftime('%d.%m.%Y %H:%M:%S')
+        valid_until: str = cert.not_valid_after_utc.strftime(
+            '%d.%m.%Y %H:%M:%S')
         self._valid_until.text = f'Valid until: {valid_until}'
 
     async def show_dialog(self) -> None:

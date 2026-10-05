@@ -140,7 +140,8 @@ class OmiProtocol(asyncio.Protocol):
 
             # logger.debug(f'Result received command: {response}')
 
-            result = OmiCommandResult(command.command, response[:-1], status, status_text)
+            result = OmiCommandResult(
+                command.command, response[:-1], status, status_text)
 
             command.result.set_result(result)
             logger.debug("Command done.")
@@ -212,7 +213,8 @@ class OmiProtocol(asyncio.Protocol):
         logger.info("Unknown notify line received: " + line)
 
     def recv_notify_INFO(self, args: str):
-        m = re.match(r"OpenVPN Management Interface Version (?P<version>\d+)", args)
+        m = re.match(
+            r"OpenVPN Management Interface Version (?P<version>\d+)", args)
         if m:
             self.version = int(m.group("version"))
             self._management_ready.set()
@@ -279,5 +281,3 @@ class OmiProtocol(asyncio.Protocol):
         :return:
         """
         logger.debug(f"Received log message: {time}, {level}, {message}")
-
-

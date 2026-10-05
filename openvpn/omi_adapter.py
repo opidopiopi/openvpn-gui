@@ -13,7 +13,7 @@ async def connect_to_port(port: int, vpn_client: client.VPNClient) -> tuple[OmiA
     finish_future = loop.create_future()
 
     _, protocol = await loop.create_connection(
-            lambda: OmiAdapter(finish_future, vpn_client), host='127.0.0.1', port=port)
+        lambda: OmiAdapter(finish_future, vpn_client), host='127.0.0.1', port=port)
 
     return protocol, finish_future
 
@@ -23,7 +23,7 @@ async def connect_to_socket(socket: str, vpn_client: client.VPNClient) -> tuple[
     finish_future = loop.create_future()
 
     _, protocol = await loop.create_unix_connection(
-            lambda: OmiAdapter(finish_future, vpn_client), socket)
+        lambda: OmiAdapter(finish_future, vpn_client), socket)
 
     return protocol, finish_future
 
@@ -77,7 +77,8 @@ class OmiAdapter(omi.OmiProtocol):
     @override
     def recv_notify_BYTECOUNT(self, args: str):
         bytes_in, bytes_out = args.split(',', 1)
-        self._vpn_client.on_bytecount(connection.Bytecount(int(bytes_in), int(bytes_out)))
+        self._vpn_client.on_bytecount(
+            connection.Bytecount(int(bytes_in), int(bytes_out)))
 
     @override
     def recv_notify_HOLD(self, args):

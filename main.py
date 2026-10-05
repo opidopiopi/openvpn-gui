@@ -148,4 +148,5 @@ async def check_connection():
 
 app.on_connect(check_connection)
 app.on_disconnect(close_connection)
-ui.run(native=arguments.native, host='127.0.0.1', title='OpenVPN Client', favicon='images/openvpn-icon.svg')
+ui.run(native=arguments.native, host='127.0.0.1',
+       title='OpenVPN Client', favicon='images/openvpn-icon.svg')

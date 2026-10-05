@@ -21,7 +21,8 @@ class StateWidget:
 
             with ui.row():
                 _ = ui.label('Routes:').classes('font-bold')
-                self._routes: ui.label = ui.label('').classes('whitespace-pre-line')
+                self._routes: ui.label = ui.label(
+                    '').classes('whitespace-pre-line')
 
     def update(self, new_state: State):
         self._state_overview.text = new_state.timestamp.strftime('%H:%M:%S')

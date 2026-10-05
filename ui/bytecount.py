@@ -52,8 +52,10 @@ class BytecountGraph:
         chart_in_data = self._bandwidth_chart.options['series'][0]['data']
         chart_out_data = self._bandwidth_chart.options['series'][1]['data']
 
-        chart_in_data.append(bytecount.bytes_incoming - self.last.bytes_incoming)
-        chart_out_data.append(bytecount.bytes_outgoing - self.last.bytes_outgoing)
+        chart_in_data.append(bytecount.bytes_incoming -
+                             self.last.bytes_incoming)
+        chart_out_data.append(bytecount.bytes_outgoing -
+                              self.last.bytes_outgoing)
 
         self.last = bytecount
 
