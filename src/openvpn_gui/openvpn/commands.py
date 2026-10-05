@@ -5,35 +5,35 @@ class Command:
 
 
 def exit():
-    return 'exit'
+    return "exit"
 
 
 def pkcs11_id_count():
-    return 'pkcs11-id-count'
+    return "pkcs11-id-count"
 
 
 def pkcs11_id_get(index: int):
-    return f'pkcs11-id-get {str(index)}'
+    return f"pkcs11-id-get {str(index)}"
 
 
 def bytecount_on(seconds: int):
-    return f'bytecount {str(seconds)}'
+    return f"bytecount {str(seconds)}"
 
 
 def log_on():
-    return 'log on'
+    return "log on"
 
 
 def verbosity(level: int):
-    return f'verb {str(level)}'
+    return f"verb {str(level)}"
 
 
 def state_last():
-    return 'state 1'
+    return "state 1"
 
 
 def state_on():
-    return 'state on'
+    return "state on"
 
 
 def needstr(type: str, message: str) -> str:
@@ -45,12 +45,12 @@ def password(type: str, password: str) -> str:
 
 
 def hold_release():
-    return 'hold release'
+    return "hold release"
 
 
 def hold_on():
-    return 'hold on'
+    return "hold on"
 
 
 def sighup():
-    return 'signal SIGHUP'
+    return "signal SIGHUP"

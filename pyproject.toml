@@ -1,0 +1,21 @@
+[project]
+name = "openvpn-gui"
+version = "0.1.0"
+description = "A GUI for OpenVPN"
+readme = "README.md"
+authors = [
+    { name = "Marvin Wunderlich", email = "opdopiopi@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "cryptography>=50.0.2",
+    "nicegui>=3.17.1",
+    "pywebview[gtk]>=6.2.1",
+]
+
+[project.scripts]
+openvpn-gui = "openvpn_gui:main"
+
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"

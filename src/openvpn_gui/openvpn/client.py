@@ -7,11 +7,15 @@ from . import connection
 
 class VPNClient(ABC):
     @abstractmethod
-    def on_token_input(self, message: str, callback: Callable[[str], Awaitable[omi.OmiCommandResult]]) -> None:
+    def on_token_input(
+        self, message: str, callback: Callable[[str], Awaitable[omi.OmiCommandResult]]
+    ) -> None:
         pass
 
     @abstractmethod
-    def on_password_input(self, callback: Callable[[str], Awaitable[omi.OmiCommandResult]]) -> None:
+    def on_password_input(
+        self, callback: Callable[[str], Awaitable[omi.OmiCommandResult]]
+    ) -> None:
         pass
 
     @abstractmethod

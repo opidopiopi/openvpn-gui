@@ -27,6 +27,7 @@
 """
 Implementation of the OpenVPN management interface (OMI) protocol.
 """
+
 import asyncio
 import logging
 import re
@@ -58,6 +59,7 @@ class ConnectionProperties:
     """
     Properties for connecting to the management interface.
     """
+
     password: str
 
 
@@ -85,15 +87,15 @@ class OmiProtocol(asyncio.Protocol):
 
     @override
     def eof_received(self):
-        logger.info('EOF received. Shutting down.')
+        logger.info("EOF received. Shutting down.")
         self._stop()
 
     @override
     def connection_lost(self, exc: Exception | None):
         if exc:
-            logger.info(f'Connection lost ({exc}). Shutting down.')
+            logger.info(f"Connection lost ({exc}). Shutting down.")
         else:
-            logger.info('Connection lost. Shutting down.')
+            logger.info("Connection lost. Shutting down.")
         self._stop()
 
     def _stop(self):
@@ -122,12 +124,12 @@ class OmiProtocol(asyncio.Protocol):
                     self._response_ready.clear()
 
                 lastline = response[-1]
-                if lastline.startswith('ERROR:'):
+                if lastline.startswith("ERROR:"):
                     status = False
                     response_complete = True
                     _, status_text = lastline.split(":", 1)
 
-                elif lastline.startswith('SUCCESS:'):
+                elif lastline.startswith("SUCCESS:"):
                     status = True
                     response_complete = True
                     _, status_text = lastline.split(":", 1)
@@ -141,7 +143,8 @@ class OmiProtocol(asyncio.Protocol):
             # logger.debug(f'Result received command: {response}')
 
             result = OmiCommandResult(
-                command.command, response[:-1], status, status_text)
+                command.command, response[:-1], status, status_text
+            )
 
             command.result.set_result(result)
             logger.debug("Command done.")
@@ -156,8 +159,8 @@ class OmiProtocol(asyncio.Protocol):
 
     @override
     def connection_made(self, transport):
-        peername: str = transport.get_extra_info('peername')
-        logging.info('Connection from {}'.format(peername))
+        peername: str = transport.get_extra_info("peername")
+        logging.info("Connection from {}".format(peername))
         self.transport = transport
         self._can_send.set()
 
@@ -176,7 +179,7 @@ class OmiProtocol(asyncio.Protocol):
 
         # pass complete lines to recvLine
         for part in parts[:-1]:
-            logger.debug(f'Line received: {part!r}')
+            logger.debug(f"Line received: {part!r}")
             self.recv_line(part)
 
         # keep the last incomplete line for the next call
@@ -185,8 +188,8 @@ class OmiProtocol(asyncio.Protocol):
     def recv_line(self, line: str):
         # special case for pkcs11 commands ...
         if line.startswith(">PKCS11ID"):
-            value = line[1:].split(':', 1)[1]
-            self._response.append(f'SUCCESS:{value}')
+            value = line[1:].split(":", 1)[1]
+            self._response.append(f"SUCCESS:{value}")
             self._response_ready.set()
         elif line.startswith(">"):
             self.recv_notify(line)
@@ -202,7 +205,7 @@ class OmiProtocol(asyncio.Protocol):
         command, args = line[1:].split(":", 1)
 
         # python doens't allow for hyphen in member names
-        command = command.replace('-', '_')
+        command = command.replace("-", "_")
 
         # do dynamic dispatch based on command to call a handler
         if hasattr(self, f"recv_notify_{command}"):
@@ -213,8 +216,7 @@ class OmiProtocol(asyncio.Protocol):
         logger.info("Unknown notify line received: " + line)
 
     def recv_notify_INFO(self, args: str):
-        m = re.match(
-            r"OpenVPN Management Interface Version (?P<version>\d+)", args)
+        m = re.match(r"OpenVPN Management Interface Version (?P<version>\d+)", args)
         if m:
             self.version = int(m.group("version"))
             self._management_ready.set()
