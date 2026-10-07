@@ -64,7 +64,13 @@ def page():
     ):
         _ = ui.space()
         with ui.row():
-            dark_mode_switch = ui.switch("Dark mode:", value=True).props("left-label")
+            dark_mode_switch = (
+                ui.switch(
+                    "Dark mode:", value=app.storage.general.get("dark_mode", True)
+                )
+                .props("left-label")
+                .bind_value(app.storage.general, "dark_mode")
+            )
             ui.dark_mode().bind_value(dark_mode_switch, "value")
 
     with ui.header():
