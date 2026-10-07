@@ -33,5 +33,5 @@ class VPNClient(ABC):
         pass
 
     @abstractmethod
-    def on_log(self, timestamp, flag: str, message: str) -> None:
+    def on_log(self, timestamp: str, flag: str, message: str) -> None:
         pass
