@@ -19,6 +19,12 @@ class VPNClient(ABC):
         pass
 
     @abstractmethod
+    def on_username_input(
+        self, callback: Callable[[str], Awaitable[omi.OmiCommandResult]]
+    ) -> None:
+        pass
+
+    @abstractmethod
     def on_bytecount(self, bytecount: connection.Bytecount) -> None:
         pass
 

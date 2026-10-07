@@ -8,7 +8,7 @@ from openvpn_gui.openvpn.management import OpenVPNConnection
 from openvpn_gui.openvpn.connection import State
 
 from openvpn_gui.gui import BytecountGraph, PasswordDialog, TokenDialog, StateWidget
-from openvpn_gui.gui import Logview, AwaitConnection
+from openvpn_gui.gui import Logview, AwaitConnection, UsernameDialog
 
 
 # prevent infinite process glitch
@@ -113,12 +113,14 @@ def page():
 
     token_dialog = TokenDialog(connection)
     password_dialog = PasswordDialog()
+    username_dialog = UsernameDialog()
     await_management_connection = AwaitConnection()
 
     connection.callback_state_change = state.emit
     connection.callback_bytecount = bandwidth_graph.update_graph
     connection.callback_log = log_view.append
     connection.callback_password_input = password_dialog.trigger_dialog
+    connection.callback_username_input = username_dialog.trigger_dialog
     connection.callback_pkcs11_id_selection = token_dialog.trigger_selection
     connection.callback_add_route = new_route.emit
     connection.callback_management_connected = await_management_connection.dispose

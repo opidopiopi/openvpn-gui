@@ -66,6 +66,9 @@ class OmiAdapter(omi.OmiProtocol):
     def recv_notify_PASSWORD(self, args: str):
         password_name: str = args.split("'")[1]
 
+        if 'username/password' in args:
+            self._trigger_username_input(password_name)
+
         self._trigger_password_input(password_name)
 
     @override
@@ -103,3 +106,10 @@ class OmiAdapter(omi.OmiProtocol):
             return self.queue_command(commands.password(password_name, password))
 
         self._vpn_client.on_password_input(password_callback)
+
+    def _trigger_username_input(self, prompt_name: str):
+        def username_callback(username: str):
+            return self.queue_command(commands.username(prompt_name,
+                                                        username))
+
+        self._vpn_client.on_username_input(username_callback)

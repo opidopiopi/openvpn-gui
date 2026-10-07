@@ -108,3 +108,9 @@ class OpenVPNConnection(client.VPNClient):
 
         message = f"{timestamp}: {message}"
         self.callback_log(flag, message)
+
+    def on_username_input(
+        self, callback: Callable[[str], Awaitable[omi.OmiCommandResult]]
+    ) -> None:
+        self.callback_username_input(callback)
+

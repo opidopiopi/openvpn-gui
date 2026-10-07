@@ -44,6 +44,10 @@ def password(type: str, password: str) -> str:
     return f"password '{type}' '{password}'"
 
 
+def username(type: str, username: str) -> str:
+    return f"username '{type}' '{username}'"
+
+
 def hold_release():
     return "hold release"
 
