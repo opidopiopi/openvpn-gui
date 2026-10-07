@@ -113,4 +113,3 @@ class OpenVPNConnection(client.VPNClient):
         self, callback: Callable[[str], Awaitable[omi.OmiCommandResult]]
     ) -> None:
         self.callback_username_input(callback)
-

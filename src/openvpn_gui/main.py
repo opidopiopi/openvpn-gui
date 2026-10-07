@@ -158,6 +158,7 @@ async def check_connection():
                     _ = ui.button("Exit", color="red", on_click=app.shutdown)
             await dialog
 
+
 app.on_connect(check_connection)
 app.on_disconnect(close_connection)
 

@@ -37,7 +37,7 @@ class OmiAdapter(omi.OmiProtocol):
     def recv_notify_PASSWORD(self, args: str):
         password_name: str = args.split("'")[1]
 
-        if 'username/password' in args:
+        if "username/password" in args:
             self._trigger_username_input(password_name)
 
         self._trigger_password_input(password_name)
@@ -68,22 +68,19 @@ class OmiAdapter(omi.OmiProtocol):
 
     def _trigger_token_selection(self, message: str):
         def token_callback(token: str):
-            return self.queue_command(commands.needstr(PKCS11_ID_REQUEST,
-                                                       token))
+            return self.queue_command(commands.needstr(PKCS11_ID_REQUEST, token))
 
         self._vpn_client.on_token_input(message, token_callback)
 
     def _trigger_password_input(self, password_name: str):
         def password_callback(password: str):
-            return self.queue_command(commands.password(password_name,
-                                                        password))
+            return self.queue_command(commands.password(password_name, password))
 
         self._vpn_client.on_password_input(password_callback)
 
     def _trigger_username_input(self, prompt_name: str):
         def username_callback(username: str):
-            return self.queue_command(commands.username(prompt_name,
-                                                        username))
+            return self.queue_command(commands.username(prompt_name, username))
 
         self._vpn_client.on_username_input(username_callback)
 
@@ -95,9 +92,7 @@ async def connect_to_port(
     finish_future = loop.create_future()
 
     _, protocol = await loop.create_connection(
-        lambda: OmiAdapter(finish_future, vpn_client),
-        host="127.0.0.1",
-        port=port
+        lambda: OmiAdapter(finish_future, vpn_client), host="127.0.0.1", port=port
     )
 
     return protocol, finish_future
@@ -110,8 +105,7 @@ async def connect_to_socket(
     finish_future = loop.create_future()
 
     _, protocol = await loop.create_unix_connection(
-        lambda: OmiAdapter(finish_future, vpn_client),
-        socket
+        lambda: OmiAdapter(finish_future, vpn_client), socket
     )
 
     return protocol, finish_future
