@@ -35,7 +35,13 @@ class OmiAdapter(omi.OmiProtocol):
             self._trigger_token_selection(message)
 
     def recv_notify_PASSWORD(self, args: str):
-        password_name: str = args.split("'")[1]
+        split = args.split("'")
+
+        if len(split) < 2:
+            logger.debug(f"Invalid PASSWORD request: {args}")
+            return
+
+        password_name: str = split[1]
 
         if "username/password" in args:
             self._trigger_username_input(password_name)
