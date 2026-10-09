@@ -4,7 +4,7 @@ from nicegui import ui, Event
 class AwaitConnection:
     def __init__(self):
         self.management_connected: Event[bool] = Event()
-        with ui.dialog().props("persistent") as is_connecting_overlay:
+        with ui.dialog() as is_connecting_overlay:
             _ = ui.spinner(size="lg")
             label = ui.label(
                 "Connecting to management interface...\n"
