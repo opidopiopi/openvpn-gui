@@ -198,8 +198,12 @@ async def show_connection(name: str):
     with ui.grid(columns=2).classes("w-full h-full"):
 
         async def toggle_connection() -> None:
-            if switch.value:
+            if switch.value is None:
+                switch.text = "Connecting..."
                 await connection.client_connect()
+                switch.enabled = False
+            elif switch.value:
+                switch.enabled = True
                 switch.text = "Connected"
                 _ = switch.props("color=green")
             else:
@@ -214,7 +218,9 @@ async def show_connection(name: str):
 
         state.subscribe(update_switch)
 
-        switch = ui.switch("Connect", on_change=toggle_connection)
+        switch = ui.switch("Connect", on_change=toggle_connection).props(
+            "toggle-indeterminate"
+        )
 
         with ui.row():
             _ = ui.label("Loglevel:")
