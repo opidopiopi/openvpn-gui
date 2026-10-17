@@ -115,6 +115,9 @@ def root():
 
     with ui.header():
         _ = ui.button(icon="menu", on_click=lambda e: left_drawer.toggle())
+        connection_label = (
+            ui.label("Connection").classes("text-bold").style("font-size: 200%")
+        )
 
     _ = ui.sub_pages(
         {
@@ -122,7 +125,8 @@ def root():
             "/connection/{name}": show_connection,
             "/connection/create/port": create_port_connection,
             "/connection/create/socket": create_socket_connection,
-        }
+        },
+        data={"connection_label": connection_label},
     ).classes("w-full")
 
 
@@ -132,7 +136,9 @@ def landing_page():
         ui.navigate.to("/connection/" + list(connection_configs().keys())[0])
 
 
-def create_socket_connection():
+async def create_socket_connection(connection_label: ui.label):
+    await close_connection()
+    connection_label.text = "new socket connection"
     _ = ui.label("Create a new socket connection:")
 
     def check_name(value: str):
@@ -155,7 +161,9 @@ def create_socket_connection():
     _ = ui.button("Create connection", on_click=create)
 
 
-def create_port_connection():
+async def create_port_connection(connection_label: ui.label):
+    await close_connection()
+    connection_label.text = "new port connection"
     _ = ui.label("Create a new port connection:")
 
     def check_name(value: str):
@@ -182,11 +190,14 @@ def create_port_connection():
     _ = ui.button("Create connection", on_click=create)
 
 
-async def show_connection(name: str):
+async def show_connection(name: str, connection_label: ui.label):
     logger.info(f"Connecting to: {name}")
 
     await close_connection()
     connection = active_connection()
+
+    config = connection_configs()[name]
+    connection_label.text = config["name"]
 
     state: Event[State] = Event[State]()
     new_route: Event[str] = Event[str]()
