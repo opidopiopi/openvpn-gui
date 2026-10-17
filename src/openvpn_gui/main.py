@@ -235,7 +235,7 @@ async def show_connection(name: str, connection_label: ui.label):
 
         with ui.row():
             _ = ui.label("Loglevel:")
-            loglevel = ui.slider(min=0, max=11, value=3).props("label").classes("w-30")
+            loglevel = ui.slider(min=0, max=7, value=3).props("label").classes("w-30")
             _ = loglevel.on(
                 "update:model-value",
                 lambda e: connection.loglevel(e.args),
