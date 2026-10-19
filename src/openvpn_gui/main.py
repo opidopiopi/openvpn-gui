@@ -53,6 +53,8 @@ for socket in arguments.socket:
         "name": f"Socket: {socket}",
     }
 
+static_config = len(commandline_configs) > 0
+
 
 def active_connection() -> OpenVPNConnection:
     if "connection" not in app.storage.client:
@@ -94,15 +96,16 @@ def root():
 
         _ = ui.separator()
 
-        with ui.button_group():
-            _ = ui.button(
-                "Port",
-                on_click=lambda: ui.navigate.to("/connection/create/port"),
-            )
-            _ = ui.button(
-                "Socket",
-                on_click=lambda: ui.navigate.to("/connection/create/socket"),
-            ).classes("w-full bg-brandblue")
+        if not static_config:
+            with ui.button_group():
+                _ = ui.button(
+                    "Port",
+                    on_click=lambda: ui.navigate.to("/connection/create/port"),
+                )
+                _ = ui.button(
+                    "Socket",
+                    on_click=lambda: ui.navigate.to("/connection/create/socket"),
+                ).classes("w-full bg-brandblue")
 
         _ = ui.space()
 
