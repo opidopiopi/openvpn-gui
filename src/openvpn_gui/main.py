@@ -309,6 +309,8 @@ async def check_connection(name: str):
 
 app.on_disconnect(close_connection)
 
+app.native.window_args["text_select"] = True
+
 ui.run(
     root,
     reload=True,
