@@ -119,6 +119,11 @@ def root():
             ui.label("Connection").classes("text-bold").style("font-size: 200%")
         )
 
+    _ = ui.context.client.page_container.default_slot.children[0].props(
+        ':style-fn="o => ({ height: `calc(100vh - ${o}px)` })"'
+    )
+    _ = ui.context.client.content.classes("h-full")
+
     _ = ui.sub_pages(
         {
             "/": landing_page,
@@ -127,7 +132,7 @@ def root():
             "/connection/create/socket": create_socket_connection,
         },
         data={"connection_label": connection_label},
-    ).classes("w-full")
+    ).classes("w-full h-full")
 
 
 def landing_page():
@@ -206,7 +211,7 @@ async def show_connection(name: str, connection_label: ui.label):
     state.subscribe(state_widget.update)
     new_route.subscribe(state_widget.add_route)
 
-    with ui.grid(columns=2).classes("w-full h-full"):
+    with ui.grid(columns=2).classes("w-full"):
 
         async def toggle_connection() -> None:
             if switch.value is None:
@@ -244,17 +249,15 @@ async def show_connection(name: str, connection_label: ui.label):
 
         bandwidth_graph = BytecountGraph(60)
 
-        log_view = Logview()
+    log_view = Logview()
 
-        token_dialog = TokenDialog(connection)
-        password_dialog = PasswordDialog()
-        username_dialog = UsernameDialog()
+    token_dialog = TokenDialog(connection)
+    password_dialog = PasswordDialog()
+    username_dialog = UsernameDialog()
 
-        if not connection.management_connected():
-            await_management_connection = AwaitConnection()
-            connection.callback_management_connected = (
-                await_management_connection.dispose
-            )
+    if not connection.management_connected():
+        await_management_connection = AwaitConnection()
+        connection.callback_management_connected = await_management_connection.dispose
 
     connection.callback_state_change = state.emit
     connection.callback_bytecount = bandwidth_graph.update_graph

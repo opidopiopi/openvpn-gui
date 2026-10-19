@@ -4,7 +4,7 @@ from openvpn_gui.openvpn.connection import State
 
 class StateWidget:
     def __init__(self):
-        with ui.grid(columns=2).classes("w-full h-full"):
+        with ui.grid(columns=2).classes("w-full"):
             with ui.card().classes("w-full bg-brandorange"):
                 _ = ui.label("Your private IP:").classes("font-bold")
                 self._local_address: ui.label = ui.label("IPv4:\nIPv6:").classes(
