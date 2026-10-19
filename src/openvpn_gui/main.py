@@ -21,13 +21,31 @@ logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(prog="OpenVPN-GUI")
 
-_ = parser.add_argument("-p", "--port", type=int, action="append", default=[])
-_ = parser.add_argument("-s", "--socket", type=str, action="append", default=[])
+_ = parser.add_argument(
+    "-p",
+    "--port",
+    type=str,
+    action="append",
+    default=[],
+    metavar="[NAME=]PORT",
+    help="define a management connection using a port on localhost",
+)
+_ = parser.add_argument(
+    "-s",
+    "--socket",
+    type=str,
+    action="append",
+    default=[],
+    metavar="[NAME=]SOCKET",
+    help="define a management connection using a unix socket",
+)
 _ = parser.add_argument(
     "-n", "--native", help="show native window", action="store_true"
 )
-_ = parser.add_argument("-v", "--verbose", action="store_true")
-_ = parser.add_argument("-vv", "--very_verbose", action="store_true")
+_ = parser.add_argument("-v", "--verbose", action="store_true", help="show info log")
+_ = parser.add_argument(
+    "-vv", "--very_verbose", action="store_true", help="show debug log"
+)
 _ = parser.add_argument(
     "-d", "--debug", action="store_true", help="Debug mode enables refresh"
 )
@@ -44,13 +62,28 @@ else:
 
 commandline_configs = dict()
 
+
+def split_argument(argument: str, prefix: str):
+    split = argument.split("=")
+
+    if len(split) == 2:
+        return split[1], split[0]
+    else:
+        return argument, prefix + argument
+
+
 for port in arguments.port:
-    commandline_configs[str(uuid.uuid4())] = {"port": port, "name": f"Port {port}"}
+    port, name = split_argument(port, "Port: ")
+    commandline_configs[str(uuid.uuid4())] = {
+        "port": port,
+        "name": name,
+    }
 
 for socket in arguments.socket:
+    socket, name = split_argument(socket, "Socket: ")
     commandline_configs[str(uuid.uuid4())] = {
         "socket": socket,
-        "name": f"Socket: {socket}",
+        "name": name,
     }
 
 static_config = len(commandline_configs) > 0
@@ -65,7 +98,6 @@ def active_connection() -> OpenVPNConnection:
 
 def connection_configs():
     if commandline_configs:
-        logger.info(f"commandline_config: {commandline_configs}")
         return commandline_configs
 
     if "connections" not in app.storage.general:
