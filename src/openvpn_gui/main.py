@@ -28,6 +28,9 @@ _ = parser.add_argument(
 )
 _ = parser.add_argument("-v", "--verbose", action="store_true")
 _ = parser.add_argument("-vv", "--very_verbose", action="store_true")
+_ = parser.add_argument(
+    "-d", "--debug", action="store_true", help="Debug mode enables refresh"
+)
 
 arguments = parser.parse_args()
 
@@ -313,7 +316,7 @@ app.native.window_args["text_select"] = True
 
 ui.run(
     root,
-    reload=True,
+    reload=arguments.debug,
     native=arguments.native,
     host="127.0.0.1",
     title="OpenVPN Client",
