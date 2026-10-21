@@ -18,8 +18,10 @@ class TokenDialog:
                 self._valid_until = ui.label()
 
             with ui.row():
-                selector = ui.select(
-                    [], on_change=lambda e: self.show_token_info(e.value)
+                selector = (
+                    ui.select([], on_change=lambda e: self.show_token_info(e.value))
+                    .on("keydown.enter", lambda: dialog.submit(selector.value))
+                    .props("autofocus")
                 )
                 _ = ui.button("ok", on_click=lambda: dialog.submit(selector.value))
                 self._selector = selector

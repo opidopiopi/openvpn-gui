@@ -9,8 +9,10 @@ class UsernameDialog:
         with ui.dialog() as self._username_dialog, ui.card():
             _ = self._username_dialog.props("persistent")
             self._username_label: ui.label = ui.label("Please enter your username:")
-            self._username_input: ui.input = ui.input().on(
-                "keydown.enter", self._username_dialog.close
+            self._username_input: ui.input = (
+                ui.input()
+                .on("keydown.enter", self._username_dialog.close)
+                .props("autofocus")
             )
             _ = ui.button("Submit", on_click=lambda: self._username_dialog.close())
 

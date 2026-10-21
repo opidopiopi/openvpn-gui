@@ -10,9 +10,11 @@ class PasswordDialog:
             self._password_dialog: ui.dialog = password_dialog
             _ = password_dialog.props("persistent")
             self._password_label: ui.label = ui.label("Please enter the password for:")
-            self._password_input: ui.input = ui.input(
-                password=True, password_toggle_button=True
-            ).on("keydown.enter", password_dialog.close)
+            self._password_input: ui.input = (
+                ui.input(password=True, password_toggle_button=True)
+                .on("keydown.enter", password_dialog.close)
+                .props("autofocus")
+            )
             _ = ui.button("Submit", on_click=lambda: password_dialog.close())
 
     def trigger_dialog(self, callback):
