@@ -6,7 +6,10 @@ from openvpn_gui.controller import Controller
 def landing_page(controller: Controller) -> None:
     with ui.grid(columns=2).classes("w-full"):
         for id, connection in controller.connection_configs().items():
-            with ui.card().classes("w-full bg-brandblue"):
+            with (
+                ui.button(color="#1652B8") as button,
+                ui.card().classes("w-full bg-brandblue no-shadow"),
+            ):
                 _ = ui.label(connection["name"]).classes("font-bold")
 
                 if "port" in connection:
@@ -14,7 +17,4 @@ def landing_page(controller: Controller) -> None:
                 elif "socket" in connection:
                     _ = ui.label(f"Socket: {connection['socket']}").classes("font-bold")
 
-                _ = ui.button(
-                    "Connect",
-                    on_click=lambda id=id: ui.navigate.to(f"/connection/{id}"),
-                )
+                _ = button.on_click(lambda id=id: ui.navigate.to(f"/connection/{id}"))
