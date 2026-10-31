@@ -1,6 +1,8 @@
 import argparse
 import logging
 import uuid
+import os
+from pathlib import Path
 
 from multiprocessing import freeze_support
 from nicegui import ui, app, native
@@ -46,6 +48,7 @@ _ = parser.add_argument(
 _ = parser.add_argument(
     "-d", "--debug", action="store_true", help="Debug mode enables refresh"
 )
+_ = parser.add_argument("-c", "--config", help="Config directory")
 
 arguments = parser.parse_args()
 
@@ -58,6 +61,24 @@ else:
 
 
 commandline_configs = dict()
+
+config_directory = (
+    Path(os.getenv("XDG_STATE_HOME", default=Path.home() / ".local" / "state"))
+    / "openvpn-gui"
+)
+if arguments.config:
+    path = Path(arguments.config)
+
+    if path.exists() and not path.is_dir():
+        logger.error("The given config directory is a file!")
+
+    config_directory = path
+
+config_directory.mkdir(exist_ok=True)
+
+# hacky override of the nicegui default
+os.environ["NICEGUI_STORAGE_PATH"] = str(config_directory)
+logger.info("Using configuration in %s", config_directory)
 
 
 def split_argument(argument: str, prefix: str):
