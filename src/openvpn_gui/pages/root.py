@@ -42,6 +42,14 @@ def root(controller: Controller):
 
         _ = ui.space()
 
+        _ = ui.button(
+            "Github",
+            icon="web",
+            on_click=lambda: ui.navigate.to(
+                "https://github.com/opidopiopi/openvpn-gui"
+            ),
+        )
+
         with ui.row():
             dark_mode_switch = (
                 ui.switch(
