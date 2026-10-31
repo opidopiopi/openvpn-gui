@@ -24,6 +24,7 @@ class BytecountGraph:
             {
                 "xAxis": {"type": "category", "show": False},
                 "yAxis": {"type": "value", "axisLabel": {":formatter": byte_formatter}},
+                "animation": False,
                 "legend": {"show": "false"},
                 "series": [
                     {
