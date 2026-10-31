@@ -11,6 +11,8 @@ from openvpn_gui.openvpn.connection import State
 from openvpn_gui.gui import BytecountGraph, PasswordDialog, TokenDialog, StateWidget
 from openvpn_gui.gui import Logview, AwaitConnection, UsernameDialog
 
+from openvpn_gui.controller import Controller
+
 
 # prevent infinite process glitch
 freeze_support()
@@ -86,24 +88,7 @@ for socket in arguments.socket:
         "name": name,
     }
 
-static_config = len(commandline_configs) > 0
-
-
-def active_connection() -> OpenVPNConnection:
-    if "connection" not in app.storage.client:
-        app.storage.client["connection"] = OpenVPNConnection()
-
-    return app.storage.client["connection"]
-
-
-def connection_configs():
-    if commandline_configs:
-        return commandline_configs
-
-    if "connections" not in app.storage.general:
-        app.storage.general["connections"] = dict()
-
-    return app.storage.general["connections"]
+controller = Controller(commandline_configs)
 
 
 def root():
@@ -120,7 +105,7 @@ def root():
         ui.left_drawer(value=False).props("bordered") as left_drawer,
         ui.column().classes("h-full").classes("w-full"),
     ):
-        for id, connection in connection_configs().items():
+        for id, connection in controller.connection_configs().items():
             _ = ui.button(
                 connection["name"],
                 on_click=lambda id=id: ui.navigate.to("/connection/" + id),
@@ -128,7 +113,7 @@ def root():
 
         _ = ui.separator()
 
-        if not static_config:
+        if not controller.is_static_config():
             with ui.button_group():
                 _ = ui.button(
                     "Port",
@@ -175,17 +160,17 @@ def root():
 
 def landing_page():
     pass
-    if connection_configs():
-        ui.navigate.to("/connection/" + list(connection_configs().keys())[0])
+    if controller.connection_configs():
+        ui.navigate.to("/connection/" + list(controller.connection_configs().keys())[0])
 
 
 async def create_socket_connection(connection_label: ui.label):
-    await close_connection()
+    await controller.disconnect()
     connection_label.text = "new socket connection"
     _ = ui.label("Create a new socket connection:")
 
     def check_name(value: str):
-        return value not in connection_configs()
+        return value not in controller.connection_configs()
 
     name = ui.input(
         label="Enter connection name",
@@ -198,19 +183,22 @@ async def create_socket_connection(connection_label: ui.label):
 
     def create():
         id = str(uuid.uuid4())
-        connection_configs()[id] = {"socket": socket.value, "name": str(name.value)}
+        controller.connection_configs()[id] = {
+            "socket": socket.value,
+            "name": str(name.value),
+        }
         ui.navigate.to(f"/connection/{id}")
 
     _ = ui.button("Create connection", on_click=create)
 
 
 async def create_port_connection(connection_label: ui.label):
-    await close_connection()
+    await controller.disconnect()
     connection_label.text = "new port connection"
     _ = ui.label("Create a new port connection:")
 
     def check_name(value: str):
-        return value not in connection_configs()
+        return value not in controller.connection_configs()
 
     name = ui.input(
         label="Enter connection name",
@@ -227,7 +215,10 @@ async def create_port_connection(connection_label: ui.label):
 
     def create():
         id = str(uuid.uuid4())
-        connection_configs()[id] = {"port": int(port.value), "name": str(name.value)}
+        controller.connection_configs()[id] = {
+            "port": int(port.value),
+            "name": str(name.value),
+        }
         ui.navigate.to(f"/connection/{id}")
 
     _ = ui.button("Create connection", on_click=create)
@@ -236,10 +227,10 @@ async def create_port_connection(connection_label: ui.label):
 async def show_connection(name: str, connection_label: ui.label):
     logger.info(f"Connecting to: {name}")
 
-    await close_connection()
-    connection = active_connection()
+    await controller.disconnect()
+    connection = controller.active_connection()
 
-    config = connection_configs()[name]
+    config = controller.connection_configs()[name]
     connection_label.text = config["name"]
 
     state: Event[State] = Event[State]()
@@ -307,45 +298,10 @@ async def show_connection(name: str, connection_label: ui.label):
 
     logger.debug("Page loaded")
 
-    await check_connection(name)
+    await controller.connect(name)
 
 
-async def close_connection():
-    logger.debug(f"Disconnecting...")
-    await active_connection().management_disconnect()
-
-
-async def check_connection(name: str):
-    if name not in connection_configs():
-        ui.navigate.to("/")
-
-    connection: OpenVPNConnection = active_connection()
-
-    connection_config = connection_configs()[name]
-    logger.debug(f"connect to {name} using: {connection_config}")
-
-    while not connection.management_connected():
-        try:
-            if "socket" in connection_config:
-                await connection.connect_to_socket(connection_config["socket"])
-            elif "port" in connection_config:
-                await connection.connect_to_port(connection_config["port"])
-        except Exception as e:
-            logger.error(f"Failed to connect to management client: {e}")
-
-            with ui.dialog() as dialog, ui.card():
-                _ = ui.label(f"Failed to connect to management interface: {e}")
-                with ui.row():
-                    _ = ui.button(
-                        "Reconnect", color="green", on_click=lambda: dialog.close()
-                    )
-                    _ = ui.button(
-                        "Cancel", color="red", on_click=lambda e: ui.navigate.to("/")
-                    )
-            await dialog
-
-
-app.on_disconnect(close_connection)
+app.on_disconnect(controller.disconnect)
 
 app.native.window_args["text_select"] = True
 
