@@ -5,11 +5,6 @@ import os
 from pathlib import Path
 
 from multiprocessing import freeze_support
-from nicegui import ui, app, native
-
-from openvpn_gui.controller import Controller
-from openvpn_gui.pages import root
-
 
 # prevent infinite process glitch
 freeze_support()
@@ -103,6 +98,14 @@ for socket in arguments.socket:
         "socket": socket,
         "name": name,
     }
+
+
+# We need to override 'NICEGUI_STORAGE_PATH' before module import...
+from nicegui import ui, app, native
+
+from openvpn_gui.controller import Controller
+from openvpn_gui.pages import root
+
 
 controller = Controller(commandline_configs)
 
