@@ -1,21 +1,29 @@
 from nicegui import ui, Event
+from collections.abc import Callable
+
+from openvpn_gui.openvpn.management import OpenVPNConnection
+from openvpn_gui.openvpn.pkcs11_token import PKCS_11_Token
 
 
 class TokenDialog:
-    def __init__(self, vpn_connection):
-        self._vpn_connection = vpn_connection
+    def __init__(self, vpn_connection: OpenVPNConnection):
+        self._vpn_connection: OpenVPNConnection = vpn_connection
         self._last_selection: str = ""
         self._show_dialog: Event[bool] = Event()
         self._show_dialog.subscribe(self.show_dialog)
+        self._tokens: list[PKCS_11_Token] = []
+        self._callback: Callable[[str], None] = lambda s: None
 
         with ui.dialog() as dialog, ui.card():
             _ = dialog.props("persistent")
-            self._label = ui.label("Please select one of the following Tokens:")
+            self._label: ui.label = ui.label(
+                "Please select one of the following Tokens:"
+            )
 
             with ui.card():
-                self._issuer = ui.label()
-                self._subject = ui.label()
-                self._valid_until = ui.label()
+                self._issuer: ui.label = ui.label()
+                self._subject: ui.label = ui.label()
+                self._valid_until: ui.label = ui.label()
 
             with ui.row():
                 selector = (
@@ -24,8 +32,8 @@ class TokenDialog:
                     .props("autofocus")
                 )
                 _ = ui.button("ok", on_click=lambda: dialog.submit(selector.value))
-                self._selector = selector
-                self._dialog = dialog
+                self._selector: ui.select = selector
+                self._dialog: ui.dialog = dialog
 
     async def show_warning(self):
         with ui.dialog() as dialog, ui.card():
@@ -33,12 +41,12 @@ class TokenDialog:
             _ = ui.button("ok", on_click=lambda: dialog.close())
             await dialog
 
-    def trigger_selection(self, message: str, callback) -> None:
-        self._label.set_text(message)
+    def trigger_selection(self, message: str, callback: Callable[[str], None]) -> None:
+        _ = self._label.set_text(message)
         self._callback = callback
         self._show_dialog.emit(True)
 
-    def show_token_info(self, token_index):
+    def show_token_info(self, token_index: int) -> None:
         cert = self._tokens[token_index].certificate
         self._issuer.text = f"Issuer: {cert.issuer.rfc4514_string()}"
         self._subject.text = f"Subject: {cert.subject.rfc4514_string()}"
@@ -56,7 +64,7 @@ class TokenDialog:
 
         selection = {i: token.name for i, token in enumerate(self._tokens)}
 
-        self._selector.set_options(
+        _ = self._selector.set_options(
             selection, value=self._last_selection if self._last_selection else 0
         )
 
