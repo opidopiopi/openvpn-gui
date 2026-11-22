@@ -34,6 +34,15 @@ _ = parser.add_argument(
     help="define a management connection using a unix socket",
 )
 _ = parser.add_argument(
+    "-m",
+    "--mock",
+    type=str,
+    action="append",
+    default=[],
+    metavar="[NAME=]MOCK",
+    help="define a mock connection",
+)
+_ = parser.add_argument(
     "-n", "--native", help="show native window", action="store_true"
 )
 _ = parser.add_argument("-v", "--verbose", action="store_true", help="show info log")
@@ -96,6 +105,13 @@ for socket in arguments.socket:
     socket, name = split_argument(socket, "Socket: ")
     commandline_configs[str(uuid.uuid4())] = {
         "socket": socket,
+        "name": name,
+    }
+
+for mock in arguments.mock:
+    mock, name = split_argument(mock, "Mock: ")
+    commandline_configs[str(uuid.uuid4())] = {
+        "mock": mock,
         "name": name,
     }
 

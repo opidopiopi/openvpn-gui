@@ -8,6 +8,7 @@ from . import omi_adapter
 from . import client
 from . import omi
 from . import pkcs11_token
+from . import mock_connection
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,14 @@ class OpenVPNConnection(client.VPNClient):
         self._connection, self._connection_closed = await omi_adapter.connect_to_port(
             port, self
         )
+        await self._management_connect()
+
+    async def connect_to_mock(self):
+        logger.debug("Connecting to mock connection...")
+        (
+            self._connection,
+            self._connection_closed,
+        ) = await mock_connection.connect_to_mock(self)
         await self._management_connect()
 
     async def _management_connect(self) -> None:

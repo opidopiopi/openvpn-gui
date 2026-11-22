@@ -31,6 +31,8 @@ class Controller:
                     await connection.connect_to_socket(connection_config["socket"])
                 elif "port" in connection_config:
                     await connection.connect_to_port(connection_config["port"])
+                elif "mock" in connection_config:
+                    await connection.connect_to_mock()
             except Exception as e:
                 logger.error(f"Failed to connect to management client: {e}")
 
