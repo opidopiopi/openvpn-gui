@@ -8,7 +8,7 @@ from openvpn_gui.openvpn.pkcs11_token import PKCS_11_Token
 class TokenDialog:
     def __init__(self, vpn_connection: OpenVPNConnection):
         self._vpn_connection: OpenVPNConnection = vpn_connection
-        self._last_selection: str = ""
+        self._last_selection: int = 0
         self._show_dialog: Event[bool] = Event()
         self._show_dialog.subscribe(self.show_dialog)
         self._tokens: list[PKCS_11_Token] = []
@@ -64,11 +64,13 @@ class TokenDialog:
 
         selection = {i: token.name for i, token in enumerate(self._tokens)}
 
-        _ = self._selector.set_options(
-            selection, value=self._last_selection if self._last_selection else 0
-        )
+        _ = self._selector.set_options(selection, value=self._last_selection)
 
-        result = await self._dialog
+        if len(self._tokens) == 1:
+            result = 0
+        else:
+            result = await self._dialog
+
         if result is not None:
             self._last_selection = result
             self._callback(self._tokens[result].token_id)
