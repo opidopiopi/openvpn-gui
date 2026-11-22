@@ -13,7 +13,10 @@ class BytecountGraph:
             power = Math.floor(Math.log(value) / Math.log(1024))
 
             const prefix = ['B/s', 'KiB/s', 'MiB/s', 'GiB/s', 'TiB/s', 'I dont think so']
-            value = Math.floor(value / (power * 1024))
+
+            if (power > 0) {
+                value = Math.round(value / Math.pow(1024, power))
+            }
             if (value < 1 || !isFinite(value)) {
                 return ''
             }
